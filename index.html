@@ -1001,6 +1001,330 @@ html{scroll-behavior:smooth}
   }
 }
 
+/* === NEW CALL BUTTON === */
+.btn-new-call{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 22px;
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+  border-radius:var(--r-xl);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:-0.01em;
+  transition:all 220ms var(--ease-out);
+  box-shadow:0 8px 22px -8px rgba(242,219,130,0.5);
+}
+.btn-new-call:hover{
+  background:var(--brand-accent-deep);
+  transform:translateY(-1px);
+  box-shadow:0 14px 30px -8px rgba(242,219,130,0.7);
+}
+.btn-new-call:active{transform:translateY(0) scale(0.98)}
+.btn-new-call .dot{
+  width:8px; height:8px;
+  background:var(--fg-invert);
+  border-radius:50%;
+  animation:dotPulse 1.6s ease-in-out infinite;
+}
+@keyframes dotPulse{
+  0%,100%{opacity:1; transform:scale(1)}
+  50%{opacity:0.4; transform:scale(1.3)}
+}
+
+/* === MODAL === */
+.modal-backdrop{
+  position:fixed; inset:0;
+  background:rgba(10,10,10,0.78);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  animation:fadeIn 240ms var(--ease-out) both;
+}
+.modal{
+  background:var(--bg-1);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-lg);
+  width:100%;
+  max-width:680px;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 40px 80px -20px rgba(0,0,0,0.6);
+  animation:modalIn 360ms var(--ease-out) both;
+}
+@keyframes modalIn{
+  from{opacity:0; transform:translateY(20px) scale(0.97)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.modal-h{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:32px 32px 20px;
+  border-bottom:1px solid var(--border-1);
+}
+.modal-h h2{
+  font-size:28px; font-weight:700;
+  letter-spacing:-0.03em; line-height:1.05;
+}
+.modal-h .eyebrow{margin-bottom:8px}
+.modal-close{
+  width:36px; height:36px;
+  border-radius:50%;
+  background:var(--bg-2);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--fg-3);
+  font-size:18px;
+  transition:all 200ms;
+  cursor:pointer;
+}
+.modal-close:hover{background:var(--bg-3); color:var(--fg-1)}
+.modal-body{padding:28px 32px 32px}
+.modal-foot{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 32px;
+  border-top:1px solid var(--border-1);
+  gap:12px;
+}
+
+/* Recording UI */
+.record-area{
+  display:flex; flex-direction:column; align-items:center;
+  padding:24px 0;
+}
+.record-btn{
+  width:96px; height:96px;
+  border-radius:50%;
+  background:var(--bg-2);
+  border:2px solid var(--border-2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:all 280ms var(--ease-out);
+  position:relative;
+  margin-bottom:18px;
+}
+.record-btn:hover{transform:scale(1.05); border-color:var(--brand-accent)}
+.record-btn .mic-icon{
+  width:36px; height:36px;
+  color:var(--fg-1);
+}
+.record-btn.recording{
+  background:rgba(229,91,91,0.16);
+  border-color:var(--bad);
+}
+.record-btn.recording .mic-icon{color:var(--bad)}
+.record-btn.recording::before{
+  content:'';
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  border:2px solid var(--bad);
+  animation:recordPulse 1.4s ease-in-out infinite;
+}
+@keyframes recordPulse{
+  0%{transform:scale(1); opacity:0.8}
+  100%{transform:scale(1.4); opacity:0}
+}
+.record-status{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+}
+.record-status.live{color:var(--bad)}
+.record-timer{
+  font-family:var(--font-mono);
+  font-size:14px;
+  color:var(--fg-2);
+  margin-top:4px;
+}
+
+.transcript-live{
+  background:var(--bg-2);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-sm);
+  padding:20px;
+  min-height:160px;
+  max-height:280px;
+  overflow-y:auto;
+  font-size:15px;
+  line-height:1.55;
+  color:var(--fg-2);
+  margin-top:24px;
+  white-space:pre-wrap;
+}
+.transcript-live:empty::before{
+  content:'Расшифровка появится здесь во время записи...';
+  color:var(--fg-4);
+  font-style:italic;
+}
+.transcript-live .interim{color:var(--fg-3); font-style:italic}
+
+.client-input, .key-input, .topic-input{
+  width:100%;
+  background:var(--bg-2);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-sm);
+  padding:14px 18px;
+  color:var(--fg-1);
+  font-family:var(--font-sans);
+  font-size:15px;
+  margin-top:8px;
+  transition:border-color 200ms;
+}
+.client-input:focus, .key-input:focus, .topic-input:focus{
+  outline:none;
+  border-color:var(--brand-accent);
+}
+.field-label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-top:18px;
+}
+
+.tabs-row{display:flex; gap:8px; margin-bottom:20px}
+.tabs-row button{
+  padding:10px 18px;
+  background:var(--bg-2);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-xl);
+  font-size:13px;
+  font-weight:600;
+  color:var(--fg-3);
+  transition:all 200ms;
+}
+.tabs-row button.active{
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+  border-color:var(--brand-accent);
+}
+
+.btn{
+  padding:11px 22px;
+  border-radius:var(--r-xl);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:-0.01em;
+  transition:all 200ms var(--ease-out);
+  cursor:pointer;
+  display:inline-flex; align-items:center; gap:10px;
+}
+.btn-primary{
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+  box-shadow:0 8px 22px -8px rgba(242,219,130,0.5);
+}
+.btn-primary:hover{background:var(--brand-accent-deep); transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5; cursor:not-allowed; transform:none}
+.btn-ghost{
+  background:var(--bg-2);
+  color:var(--fg-1);
+  border:1px solid var(--border-1);
+}
+.btn-ghost:hover{background:var(--bg-3); border-color:var(--border-2)}
+
+.api-hint{
+  font-size:13px;
+  color:var(--fg-3);
+  line-height:1.55;
+  margin-top:8px;
+}
+.api-hint a{color:var(--brand-accent); border-bottom:1px solid rgba(242,219,130,0.4)}
+.api-hint code{
+  font-family:var(--font-mono);
+  background:var(--bg-3);
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:12px;
+}
+
+.api-banner{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px;
+  background:rgba(242,219,130,0.06);
+  border:1px solid rgba(242,219,130,0.25);
+  border-radius:var(--r-sm);
+  margin-bottom:20px;
+}
+.api-banner .ico{
+  width:36px; height:36px;
+  border-radius:8px;
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900;
+  flex-shrink:0;
+}
+.api-banner .text{
+  font-size:13px;
+  color:var(--fg-2);
+  line-height:1.5;
+}
+.api-banner .text strong{color:var(--brand-accent); font-weight:700}
+
+.ai-loading{
+  display:flex; flex-direction:column; align-items:center;
+  padding:48px 24px;
+  text-align:center;
+}
+.ai-spinner{
+  width:48px; height:48px;
+  border:3px solid var(--bg-3);
+  border-top-color:var(--brand-accent);
+  border-radius:50%;
+  animation:spin 800ms linear infinite;
+  margin-bottom:20px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-loading-text{
+  font-size:15px;
+  color:var(--fg-2);
+  font-weight:500;
+}
+.ai-loading-meta{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--fg-4);
+  margin-top:6px;
+}
+
+.error-banner{
+  padding:14px 18px;
+  background:rgba(229,91,91,0.08);
+  border:1px solid rgba(229,91,91,0.3);
+  border-radius:var(--r-sm);
+  color:var(--bad);
+  font-size:13px;
+  line-height:1.5;
+  margin-top:14px;
+}
+
+/* live badge in nav for new calls */
+.live-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:3px 8px;
+  background:rgba(242,219,130,0.15);
+  border-radius:var(--r-xl);
+  font-family:var(--font-display);
+  font-size:9px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--brand-accent);
+  margin-left:8px;
+}
+.live-badge::before{
+  content:'';
+  width:6px; height:6px;
+  background:var(--brand-accent);
+  border-radius:50%;
+  animation:dotPulse 1.6s ease-in-out infinite;
+}
+
 /* === FILTER BAR === */
 .mgr-filter{
   display:flex; gap:8px; margin-bottom:24px;
@@ -1037,6 +1361,10 @@ html{scroll-behavior:smooth}
     </div>
   </div>
   <div class="nav-right">
+    <button class="btn-new-call" id="btn-new-call">
+      <span class="dot"></span>
+      Новый звонок
+    </button>
     <div class="nav-period" id="period-tabs">
       <button data-period="day" class="active">Сегодня</button>
       <button data-period="week">Неделя</button>
@@ -1055,6 +1383,9 @@ html{scroll-behavior:smooth}
 
 <!-- ========== VIEW: CALL ========== -->
 <main id="view-call" class="shell fade-in" hidden></main>
+
+<!-- ========== MODAL: NEW CALL ========== -->
+<div id="modal-root"></div>
 
 <footer class="footer">
   Мастодонт РОП · Synthetic data demo · Curated by <span>ИИ Мастодонт</span>
@@ -1735,7 +2066,7 @@ function callRow(c){
     <div class="call-row" data-call="${c.id}">
       <div class="call-time">${c.time}</div>
       <div class="call-client">
-        ${c.client}
+        ${c.client}${c.isLive ? '<span class="live-badge">Live AI</span>' : ''}
         <span class="topic">${c.topic}</span>
       </div>
       <div class="call-dur">${c.dur}</div>
@@ -1981,6 +2312,481 @@ document.getElementById('period-tabs').addEventListener('click', e => {
   currentPeriod = btn.dataset.period;
   navigate();
 });
+
+/* ============================================================
+   NEW CALL MODAL — Web Speech API + Claude AI
+   ============================================================ */
+
+const modalRoot = document.getElementById('modal-root');
+let recognition = null;
+let recordingState = {
+  isRecording: false,
+  startTime: 0,
+  timerId: null,
+  finalText: '',
+  interimText: '',
+  selectedManager: 'galina',
+  selectedTab: 'record',
+  pastedText: '',
+};
+
+function openNewCallModal(){
+  recordingState = {
+    isRecording:false, startTime:0, timerId:null,
+    finalText:'', interimText:'',
+    selectedManager:'galina', selectedTab:'record', pastedText:''
+  };
+  renderModal();
+}
+
+function closeModal(){
+  if(recognition){ try{ recognition.stop(); }catch(e){} recognition = null; }
+  if(recordingState.timerId){ clearInterval(recordingState.timerId); }
+  modalRoot.innerHTML = '';
+}
+
+function renderModal(){
+  const hasKey = !!localStorage.getItem('claude_api_key');
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-h">
+          <div>
+            <div class="eyebrow accent">${hasKey ? 'РЕАЛЬНАЯ ИНТЕГРАЦИЯ' : 'ДЕМО'} · CLAUDE API + WEB SPEECH</div>
+            <h2>Новый звонок</h2>
+          </div>
+          <div class="modal-close" id="modal-close">×</div>
+        </div>
+        <div class="modal-body">
+          ${!hasKey ? `
+            <div class="api-banner">
+              <div class="ico">⚡</div>
+              <div class="text">
+                <strong>Реальная оценка через Claude AI.</strong> Ввести Anthropic API-ключ один раз - дальше каждый звонок оценивается живой моделью. Ключ хранится локально в браузере.
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="tabs-row">
+            <button class="${recordingState.selectedTab==='record'?'active':''}" data-tab="record">Записать с микрофона</button>
+            <button class="${recordingState.selectedTab==='paste'?'active':''}" data-tab="paste">Вставить текст</button>
+          </div>
+
+          ${recordingState.selectedTab === 'record' ? renderRecordTab() : renderPasteTab()}
+
+          <div class="field-label">Менеджер</div>
+          <select class="client-input" id="mgr-select">
+            ${MANAGERS.map(m => `<option value="${m.id}" ${m.id===recordingState.selectedManager?'selected':''}>${m.name}</option>`).join('')}
+          </select>
+
+          <div class="field-label">Клиент (опционально)</div>
+          <input type="text" class="client-input" id="client-input" placeholder="Например - Андрей К." />
+
+          <div class="field-label">Тема звонка (опционально)</div>
+          <input type="text" class="topic-input" id="topic-input" placeholder="Например - запрос на VIP-тариф" />
+
+          <div id="error-slot"></div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" id="btn-cancel">Отмена</button>
+          <button class="btn btn-primary" id="btn-evaluate" disabled>
+            <span>Оценить через Claude AI</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  document.getElementById('btn-evaluate').addEventListener('click', evaluateCall);
+  document.getElementById('mgr-select').addEventListener('change', e => {
+    recordingState.selectedManager = e.target.value;
+  });
+
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      recordingState.selectedTab = btn.dataset.tab;
+      if(recognition && recordingState.isRecording){ recognition.stop(); }
+      renderModal();
+    });
+  });
+
+  if(recordingState.selectedTab === 'record'){
+    document.getElementById('record-btn')?.addEventListener('click', toggleRecording);
+  } else {
+    document.getElementById('paste-area')?.addEventListener('input', e => {
+      recordingState.pastedText = e.target.value;
+      updateEvaluateBtn();
+    });
+  }
+  updateEvaluateBtn();
+}
+
+function renderRecordTab(){
+  const hasSpeechAPI = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if(!hasSpeechAPI){
+    return `
+      <div class="error-banner">
+        Web Speech API не поддерживается в этом браузере. Используй Chrome или Edge - там работает из коробки. Или переключись на вкладку «Вставить текст».
+      </div>
+    `;
+  }
+  return `
+    <div class="record-area">
+      <button class="record-btn ${recordingState.isRecording?'recording':''}" id="record-btn">
+        <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 1 0 6 0V5a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+      <div class="record-status ${recordingState.isRecording?'live':''}" id="record-status">
+        ${recordingState.isRecording?'Запись · говорите':'Нажми чтобы начать'}
+      </div>
+      <div class="record-timer" id="record-timer">00:00</div>
+    </div>
+    <div class="transcript-live" id="transcript-live">${recordingState.finalText}${recordingState.interimText?`<span class="interim">${recordingState.interimText}</span>`:''}</div>
+  `;
+}
+
+function renderPasteTab(){
+  return `
+    <div class="field-label">Текст расшифровки</div>
+    <textarea class="client-input" id="paste-area" rows="8" placeholder="Вставь готовую расшифровку звонка - реплики менеджера и клиента. Claude разметит её и оценит по 5 критериям." style="resize:vertical; min-height:180px; font-family:var(--font-sans)">${recordingState.pastedText}</textarea>
+  `;
+}
+
+function updateEvaluateBtn(){
+  const btn = document.getElementById('btn-evaluate');
+  if(!btn) return;
+  const text = recordingState.selectedTab === 'record' ? recordingState.finalText : recordingState.pastedText;
+  btn.disabled = !text || text.trim().length < 30;
+}
+
+function toggleRecording(){
+  if(recordingState.isRecording){
+    if(recognition) recognition.stop();
+    return;
+  }
+  startRecording();
+}
+
+function startRecording(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'ru-RU';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    recordingState.isRecording = true;
+    recordingState.startTime = Date.now();
+    recordingState.timerId = setInterval(updateTimer, 200);
+    updateRecordUI();
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const transcript = e.results[i][0].transcript;
+      if(e.results[i].isFinal){
+        recordingState.finalText += transcript + ' ';
+      } else {
+        interim += transcript;
+      }
+    }
+    recordingState.interimText = interim;
+    updateTranscriptUI();
+    updateEvaluateBtn();
+  };
+
+  recognition.onerror = (e) => {
+    console.warn('Speech error:', e.error);
+    if(e.error === 'no-speech') return;
+    showError('Ошибка распознавания: ' + e.error);
+  };
+
+  recognition.onend = () => {
+    recordingState.isRecording = false;
+    if(recordingState.timerId) clearInterval(recordingState.timerId);
+    recordingState.interimText = '';
+    updateRecordUI();
+    updateTranscriptUI();
+    updateEvaluateBtn();
+  };
+
+  try{
+    recognition.start();
+  } catch(err){
+    showError('Не удалось запустить запись: ' + err.message);
+  }
+}
+
+function updateTimer(){
+  const el = document.getElementById('record-timer');
+  if(!el) return;
+  const sec = Math.floor((Date.now() - recordingState.startTime)/1000);
+  const mm = String(Math.floor(sec/60)).padStart(2,'0');
+  const ss = String(sec%60).padStart(2,'0');
+  el.textContent = `${mm}:${ss}`;
+}
+
+function updateRecordUI(){
+  const btn = document.getElementById('record-btn');
+  const status = document.getElementById('record-status');
+  if(!btn) return;
+  btn.classList.toggle('recording', recordingState.isRecording);
+  if(status){
+    status.textContent = recordingState.isRecording?'Запись · говорите':'Нажми чтобы начать';
+    status.classList.toggle('live', recordingState.isRecording);
+  }
+}
+
+function updateTranscriptUI(){
+  const el = document.getElementById('transcript-live');
+  if(!el) return;
+  el.innerHTML = recordingState.finalText + (recordingState.interimText?`<span class="interim">${recordingState.interimText}</span>`:'');
+  el.scrollTop = el.scrollHeight;
+}
+
+function showError(msg){
+  const slot = document.getElementById('error-slot');
+  if(!slot) return;
+  slot.innerHTML = `<div class="error-banner">${msg}</div>`;
+}
+
+async function evaluateCall(){
+  const text = (recordingState.selectedTab === 'record' ? recordingState.finalText : recordingState.pastedText).trim();
+  if(text.length < 30){ showError('Слишком короткий текст. Минимум 30 символов.'); return; }
+
+  let key = localStorage.getItem('claude_api_key');
+  if(!key){
+    key = await promptApiKey();
+    if(!key) return;
+    localStorage.setItem('claude_api_key', key);
+  }
+
+  const mgrId = recordingState.selectedManager;
+  const client = (document.getElementById('client-input')?.value || 'Без имени').trim() || 'Без имени';
+  const topic = (document.getElementById('topic-input')?.value || 'Без темы').trim() || 'Без темы';
+  const m = MANAGERS.find(x => x.id === mgrId);
+
+  const dur = recordingState.selectedTab === 'record'
+    ? Math.max(1, Math.floor((Date.now() - recordingState.startTime)/60000))
+    : Math.max(1, Math.round(text.length / 600));
+
+  showAILoading();
+
+  try{
+    const result = await callClaude(key, text, m.name, client, topic);
+    addNewCall(result, text, mgrId, client, topic, dur);
+  } catch(err){
+    if(String(err.message || '').includes('401') || String(err.message || '').includes('authentication')){
+      localStorage.removeItem('claude_api_key');
+      showAILoading(false);
+      showError('Неверный API-ключ. Удалил - попробуй ещё раз с правильным.');
+    } else {
+      showAILoading(false);
+      showError('Ошибка Claude API: ' + err.message);
+    }
+  }
+}
+
+function showAILoading(show = true){
+  if(!show){ renderModal(); return; }
+  modalRoot.querySelector('.modal-body').innerHTML = `
+    <div class="ai-loading">
+      <div class="ai-spinner"></div>
+      <div class="ai-loading-text">Claude оценивает звонок...</div>
+      <div class="ai-loading-meta">model: claude-sonnet-4-6 · 5 критериев · ~6 секунд</div>
+    </div>
+  `;
+  modalRoot.querySelector('.modal-foot').style.display = 'none';
+}
+
+function promptApiKey(){
+  return new Promise(resolve => {
+    const html = `
+      <div class="modal-backdrop" id="key-backdrop">
+        <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+          <div class="modal-h">
+            <div>
+              <div class="eyebrow accent">ANTHROPIC API</div>
+              <h2>Подключить Claude</h2>
+            </div>
+            <div class="modal-close" id="key-close">×</div>
+          </div>
+          <div class="modal-body">
+            <div class="api-hint">
+              Получить ключ - <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Хранится локально в браузере (<code>localStorage</code>), на сервер не уходит. Используется только для оценки звонков.
+            </div>
+            <div class="field-label">API ключ</div>
+            <input type="password" class="key-input" id="key-input" placeholder="sk-ant-api03-..." autocomplete="off" />
+            <div id="key-error"></div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-ghost" id="key-cancel">Отмена</button>
+            <button class="btn btn-primary" id="key-save">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+
+    const cleanup = () => { document.body.removeChild(wrap); };
+
+    wrap.querySelector('#key-close').addEventListener('click', () => { cleanup(); resolve(null); });
+    wrap.querySelector('#key-cancel').addEventListener('click', () => { cleanup(); resolve(null); });
+    wrap.querySelector('#key-backdrop').addEventListener('click', e => {
+      if(e.target.id === 'key-backdrop'){ cleanup(); resolve(null); }
+    });
+    wrap.querySelector('#key-save').addEventListener('click', () => {
+      const v = wrap.querySelector('#key-input').value.trim();
+      if(!v.startsWith('sk-ant-')){
+        wrap.querySelector('#key-error').innerHTML = '<div class="error-banner">Ключ должен начинаться с sk-ant-</div>';
+        return;
+      }
+      cleanup();
+      resolve(v);
+    });
+    wrap.querySelector('#key-input').focus();
+  });
+}
+
+async function callClaude(apiKey, transcript, mgrName, client, topic){
+  const system = `Ты - нейро-РОП, руководитель отдела продаж. Оцениваешь качество звонка менеджера, который продаёт онлайн-курс по заработку на нейросетях (продукт - "Мастодонт", чек 90-150 тысяч рублей).
+
+Тебе придёт расшифровка звонка. Оцени её по 5 критериям, каждый от 0 до 100:
+- script (Скрипт) - соблюдение структуры скрипта продаж, логика звонка
+- objection (Возражения) - отработка возражений клиента (особенно про цену и время)
+- empathy (Эмпатия) - эмоциональный тон, контакт с клиентом, тёплость
+- need (Потребность) - выявление настоящей боли и потребности
+- close (Закрытие) - закрытие на следующий шаг (оплата, встреча, ссылка)
+
+Также определи:
+- result: одно из "win" (сделка закрыта), "next" (договорились на следующий шаг), "lost" (лид потерян)
+- summary: краткое резюме звонка одним абзацем (2-3 предложения)
+- pros: массив из 2-3 строк - что менеджер сделал хорошо
+- cons: массив из 2-3 строк - что упущено или сделано плохо
+- rec: рекомендация для РОПа одним предложением - что делать с менеджером по итогам этого звонка
+- flags: массив объектов вида {phrase: "точная цитата из расшифровки", type: "good"|"bad", reason: "почему"} - 2-4 ключевых момента в звонке
+
+Ответь СТРОГО валидным JSON без markdown-обёртки и без пояснений. Только сам JSON-объект.`;
+
+  const user = `Менеджер: ${mgrName}
+Клиент: ${client}
+Тема: ${topic}
+
+Расшифровка:
+${transcript}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:1500,
+      system,
+      messages:[{role:'user', content:user}]
+    })
+  });
+
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error(`${res.status} ${errText}`);
+  }
+  const json = await res.json();
+  const content = json.content?.[0]?.text || '';
+
+  let parsed;
+  try {
+    const match = content.match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(match ? match[0] : content);
+  } catch(e){
+    throw new Error('Не удалось распарсить ответ модели');
+  }
+  return parsed;
+}
+
+function addNewCall(ai, transcript, mgrId, client, topic, durMin){
+  const id = 'live_' + Date.now();
+  const score = Math.round((ai.script + ai.objection + ai.empathy + ai.need + ai.close)/5);
+  const now = new Date();
+  const time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+  CALLS.unshift({
+    id, mgr: mgrId, time, dur: durMin + 'м',
+    client, topic, result: ai.result, score,
+    scores: [ai.script, ai.objection, ai.empathy, ai.need, ai.close],
+    isLive: true,
+  });
+
+  // Build transcript lines from raw text - split by sentence/punctuation
+  const m = MANAGERS.find(x => x.id === mgrId);
+  const lines = buildLinesFromText(transcript, m.name.split(' ')[0], client.split(' ')[0], ai.flags || []);
+
+  TRANSCRIPTS[id] = {
+    summary: ai.summary,
+    pros: ai.pros || [],
+    cons: ai.cons || [],
+    rec: ai.rec,
+    lines,
+  };
+
+  // Bump manager stats for current period
+  const period = currentPeriod;
+  const stats = STATS[mgrId][period];
+  stats.calls += 1;
+  if(ai.result === 'win'){ stats.deals += 1; stats.sum += 110000; }
+
+  closeModal();
+  location.hash = '#/call/' + id;
+}
+
+function buildLinesFromText(text, mgrName, clientName, flags){
+  // Split into sentences. If transcript contains "Менеджер:" / "Клиент:" markers, parse those.
+  const hasMarkers = /(менеджер|клиент)\s*[:—-]/i.test(text);
+  let lines = [];
+  if(hasMarkers){
+    const parts = text.split(/(?=(?:менеджер|клиент)\s*[:—-])/i);
+    parts.forEach(p => {
+      const m = p.match(/^(менеджер|клиент)\s*[:—-]\s*(.+)$/is);
+      if(m){
+        lines.push({who: m[1].toLowerCase().startsWith('м') ? 'mgr' : 'client', text: m[2].trim()});
+      }
+    });
+  } else {
+    // Split by sentences, alternate speakers as fallback
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 4);
+    sentences.forEach((s, i) => {
+      lines.push({who: i % 2 === 0 ? 'mgr' : 'client', text: s.trim()});
+    });
+  }
+
+  // Match flags to lines
+  flags.forEach(f => {
+    const phrase = (f.phrase || '').toLowerCase().slice(0, 40);
+    const idx = lines.findIndex(l => l.text.toLowerCase().includes(phrase) && phrase.length > 8);
+    if(idx >= 0){
+      lines[idx].flag = f.type === 'good' ? 'good' : 'bad';
+      lines[idx].flagText = f.reason || (f.type === 'good' ? 'Сильный момент' : 'Проблемная зона');
+    }
+  });
+
+  return lines.length ? lines : [{who:'mgr', text}];
+}
+
+document.getElementById('btn-new-call').addEventListener('click', openNewCallModal);
 
 /* INIT */
 navigate();
