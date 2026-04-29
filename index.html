@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Мастодонт РОП — Контроль качества звонков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Archivo+Black&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand-accent:#F2DB82;
+  --brand-accent-deep:#F3D047;
+  --brand-amber:#E2AB1A;
+  --brand-violet:#641B9C;
+  --brand-magenta:#E919D6;
+  --brand-coral:#D37249;
+  --bg:#0A0A0A;
+  --bg-1:#171717;
+  --bg-2:#202020;
+  --bg-3:#2A2A2A;
+  --bg-glass:rgba(217,217,217,0.03);
+  --fg-1:#F4F4F4;
+  --fg-2:#E8E8E8;
+  --fg-3:#A6A6A6;
+  --fg-4:#6B6B6B;
+  --fg-invert:#0A0A0A;
+  --border-1:rgba(255,255,255,0.08);
+  --border-2:rgba(255,255,255,0.14);
+  --good:#7CDB8E;
+  --warn:#F2DB82;
+  --bad:#E55B5B;
+  --r-sm:12px; --r-md:20px; --r-lg:32px; --r-xl:44px;
+  --ease-out:cubic-bezier(0.22,1,0.36,1);
+  --font-sans:'Manrope',-apple-system,Inter,system-ui,sans-serif;
+  --font-display:'Archivo Black',Impact,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--bg);
+  color:var(--fg-1);
+  font-family:var(--font-sans);
+  font-size:16px;
+  line-height:1.5;
+  letter-spacing:-0.01em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  min-height:100vh;
+}
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  background:radial-gradient(ellipse 1200px 800px at 80% -10%, rgba(100,27,156,0.18), transparent 60%),
+             radial-gradient(ellipse 800px 600px at -10% 110%, rgba(211,114,73,0.08), transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+body > *{position:relative; z-index:1}
+
+button{cursor:pointer; font-family:inherit; border:none; background:none; color:inherit}
+a{color:inherit; text-decoration:none}
+[hidden]{display:none !important}
+
+/* === NAV === */
+.nav{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 48px;
+  border-bottom:1px solid var(--border-1);
+  backdrop-filter:blur(20px);
+  position:sticky; top:0; z-index:50;
+  background:rgba(10,10,10,0.7);
+}
+.nav-brand{display:flex; align-items:center; gap:14px}
+.nav-bolt{
+  width:42px; height:42px;
+  background:var(--brand-accent);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--fg-invert);
+  font-weight:900; font-size:24px;
+  box-shadow:0 12px 28px -10px rgba(242,219,130,0.45);
+}
+.nav-title{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:18px;
+  letter-spacing:-0.02em;
+}
+.nav-title span{color:var(--brand-accent)}
+.nav-meta{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:0.18em;
+  color:var(--fg-3);
+  text-transform:uppercase;
+}
+.nav-right{display:flex; align-items:center; gap:24px}
+.nav-period{
+  display:flex;
+  background:var(--bg-2);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-xl);
+  padding:4px;
+}
+.nav-period button{
+  padding:8px 18px;
+  border-radius:var(--r-xl);
+  font-size:13px;
+  font-weight:600;
+  color:var(--fg-3);
+  letter-spacing:-0.01em;
+  transition:all 200ms var(--ease-out);
+}
+.nav-period button.active{
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+}
+.nav-period button:hover:not(.active){color:var(--fg-1)}
+.nav-user{
+  width:42px; height:42px;
+  border-radius:50%;
+  background:var(--bg-2);
+  border:1px solid var(--border-2);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:14px;
+}
+
+/* === SHELL === */
+.shell{
+  max-width:1440px;
+  margin:0 auto;
+  padding:48px;
+}
+.eyebrow{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-bottom:14px;
+}
+.eyebrow.accent{color:var(--brand-accent)}
+
+/* === HEADER === */
+.page-h{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px; gap:32px}
+.page-h h1{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:clamp(48px,6vw,88px);
+  line-height:0.94;
+  letter-spacing:-0.05em;
+}
+.page-h h1 .accent{color:var(--brand-accent)}
+.page-h-meta{
+  text-align:right;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--fg-3);
+  line-height:1.6;
+}
+
+/* === AI INSIGHTS BANNER === */
+.insights{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:48px;
+}
+.insight{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:24px;
+  position:relative;
+  overflow:hidden;
+  transition:all 240ms var(--ease-out);
+}
+.insight:hover{transform:translateY(-2px); border-color:var(--border-2)}
+.insight.urgent{
+  border-color:rgba(229,91,91,0.4);
+  background:linear-gradient(180deg, rgba(229,91,91,0.06), var(--bg-1));
+}
+.insight.win{
+  border-color:rgba(124,219,142,0.4);
+  background:linear-gradient(180deg, rgba(124,219,142,0.06), var(--bg-1));
+}
+.insight.note{
+  border-color:rgba(242,219,130,0.4);
+  background:linear-gradient(180deg, rgba(242,219,130,0.06), var(--bg-1));
+}
+.insight-tag{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.insight.urgent .insight-tag{color:var(--bad)}
+.insight.win .insight-tag{color:var(--good)}
+.insight.note .insight-tag{color:var(--brand-accent)}
+.insight-title{
+  font-size:18px; font-weight:700;
+  letter-spacing:-0.02em; line-height:1.3;
+  margin-bottom:8px;
+}
+.insight-body{
+  font-size:14px;
+  color:var(--fg-3);
+  line-height:1.5;
+}
+.insight-cta{
+  display:inline-block; margin-top:14px;
+  font-size:13px; font-weight:600;
+  color:var(--brand-accent);
+  letter-spacing:-0.01em;
+  border-bottom:1px solid rgba(242,219,130,0.4);
+  padding-bottom:1px;
+  cursor:pointer;
+}
+
+/* === ROP SAYS === */
+.rop-says{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-left:3px solid var(--brand-accent);
+  border-radius:var(--r-md);
+  padding:28px 32px;
+  margin-bottom:48px;
+  display:flex; gap:24px; align-items:flex-start;
+}
+.rop-says-avatar{
+  width:48px; height:48px; flex-shrink:0;
+  background:var(--brand-accent);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--fg-invert);
+  font-weight:900; font-size:22px;
+}
+.rop-says-content{flex:1}
+.rop-says-label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--brand-accent);
+  margin-bottom:6px;
+}
+.rop-says-text{
+  font-size:18px;
+  line-height:1.5;
+  color:var(--fg-1);
+  letter-spacing:-0.02em;
+  font-weight:500;
+}
+.rop-says-text strong{color:var(--brand-accent); font-weight:700}
+
+/* === KPI ROW === */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:48px;
+}
+.kpi{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:28px;
+}
+.kpi-label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-bottom:14px;
+}
+.kpi-value{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:48px;
+  letter-spacing:-0.04em;
+  line-height:1;
+  color:var(--fg-1);
+}
+.kpi-value .unit{
+  font-size:18px;
+  color:var(--fg-3);
+  font-weight:500;
+  margin-left:4px;
+  letter-spacing:0;
+}
+.kpi-delta{
+  margin-top:10px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  display:flex; align-items:center; gap:6px;
+}
+.kpi-delta.up{color:var(--good)}
+.kpi-delta.down{color:var(--bad)}
+.kpi-delta.flat{color:var(--fg-3)}
+
+/* === SECTION === */
+.section{margin-bottom:48px}
+.section-h{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:24px;
+}
+.section-h h2{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:32px;
+  letter-spacing:-0.03em;
+  line-height:1;
+}
+.section-h .meta{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--fg-3);
+}
+
+/* === TWO COL === */
+.two-col{
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:16px;
+}
+@media (max-width:1100px){
+  .two-col{grid-template-columns:1fr}
+  .insights{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* === CARD === */
+.card{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:28px;
+}
+.card-h{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:24px;
+}
+.card-h h3{
+  font-size:20px; font-weight:700;
+  letter-spacing:-0.02em;
+}
+.card-h .meta{font-family:var(--font-mono); font-size:12px; color:var(--fg-3)}
+
+/* === DONUT === */
+.donut-wrap{
+  display:flex; align-items:center; gap:32px;
+  flex-wrap:wrap;
+}
+.donut{position:relative; width:240px; height:240px; flex-shrink:0}
+.donut-center{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center;
+}
+.donut-center .num{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:64px;
+  letter-spacing:-0.04em;
+  line-height:1;
+  color:var(--brand-accent);
+}
+.donut-center .lbl{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-top:6px;
+}
+.donut-legend{flex:1; min-width:200px}
+.donut-legend-item{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--border-1);
+  font-size:14px;
+}
+.donut-legend-item:last-child{border-bottom:none}
+.donut-legend-name{display:flex; align-items:center; gap:10px; color:var(--fg-2); font-weight:500}
+.donut-dot{width:10px; height:10px; border-radius:50%}
+.donut-legend-val{font-family:var(--font-mono); font-weight:600; color:var(--fg-1)}
+
+/* === MANAGER GRID === */
+.mgr-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:16px;
+}
+.mgr-card{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:24px;
+  cursor:pointer;
+  transition:all 240ms var(--ease-out);
+  position:relative;
+  overflow:hidden;
+}
+.mgr-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--border-2);
+  background:var(--bg-2);
+}
+.mgr-card-h{display:flex; align-items:center; gap:14px; margin-bottom:24px}
+.mgr-avatar{
+  width:48px; height:48px;
+  border-radius:12px;
+  background:var(--bg-3);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:18px;
+  letter-spacing:-0.02em;
+  color:var(--fg-1);
+  flex-shrink:0;
+}
+.mgr-avatar.top{background:var(--brand-accent); color:var(--fg-invert)}
+.mgr-name{font-size:16px; font-weight:700; letter-spacing:-0.02em; line-height:1.2}
+.mgr-role{font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin-top:2px}
+.mgr-score-row{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:14px;
+}
+.mgr-score{
+  font-family:var(--font-sans);
+  font-weight:700;
+  font-size:48px;
+  letter-spacing:-0.04em;
+  line-height:1;
+}
+.mgr-score.good{color:var(--good)}
+.mgr-score.warn{color:var(--brand-accent)}
+.mgr-score.bad{color:var(--bad)}
+.mgr-stats{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--fg-3);
+  text-align:right;
+  line-height:1.5;
+}
+.mgr-spark{height:40px; margin-top:8px}
+.mgr-foot{
+  display:flex; justify-content:space-between;
+  margin-top:14px; padding-top:14px;
+  border-top:1px solid var(--border-1);
+  font-family:var(--font-mono);
+  font-size:11px;
+}
+.mgr-foot div{color:var(--fg-3)}
+.mgr-foot strong{color:var(--fg-1); font-weight:600}
+
+/* === BACK BTN === */
+.back-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:13px; font-weight:600;
+  color:var(--fg-3);
+  letter-spacing:-0.01em;
+  margin-bottom:24px;
+  transition:color 200ms;
+}
+.back-btn:hover{color:var(--brand-accent)}
+.back-btn svg{width:16px; height:16px}
+
+/* === MANAGER DETAIL === */
+.mgr-detail-h{
+  display:flex; align-items:center; gap:24px;
+  margin-bottom:48px;
+  padding-bottom:32px;
+  border-bottom:1px solid var(--border-1);
+}
+.mgr-detail-avatar{
+  width:96px; height:96px;
+  border-radius:24px;
+  background:var(--brand-accent);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:36px;
+  letter-spacing:-0.04em;
+  color:var(--fg-invert);
+  flex-shrink:0;
+}
+.mgr-detail-meta{flex:1}
+.mgr-detail-meta h1{
+  font-size:48px; font-weight:700;
+  letter-spacing:-0.04em; line-height:1;
+}
+.mgr-detail-meta .role{
+  font-family:var(--font-mono);
+  font-size:14px;
+  color:var(--fg-3);
+  margin-top:8px;
+}
+.mgr-detail-score{
+  text-align:right;
+}
+.mgr-detail-score .num{
+  font-size:80px; font-weight:700;
+  letter-spacing:-0.05em; line-height:1;
+}
+.mgr-detail-score .lbl{
+  font-family:var(--font-display);
+  font-size:11px; letter-spacing:0.2em;
+  color:var(--fg-3);
+  text-transform:uppercase;
+  margin-top:6px;
+}
+
+/* === LINE CHART === */
+.line-chart{width:100%; height:280px}
+.chart-grid line{stroke:var(--border-1); stroke-dasharray:2 4}
+.chart-axis text{
+  font-family:var(--font-mono);
+  font-size:10px;
+  fill:var(--fg-4);
+}
+.chart-line{fill:none; stroke:var(--brand-accent); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round}
+.chart-area{fill:url(#area-grad)}
+.chart-dot{fill:var(--brand-accent); stroke:var(--bg-1); stroke-width:2}
+
+/* === RADAR === */
+.radar{width:100%; max-width:380px; aspect-ratio:1}
+.radar-grid{stroke:var(--border-1); fill:none}
+.radar-grid-axis{stroke:var(--border-1)}
+.radar-shape{fill:rgba(242,219,130,0.18); stroke:var(--brand-accent); stroke-width:2; stroke-linejoin:round}
+.radar-dot{fill:var(--brand-accent)}
+.radar-label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  fill:var(--fg-3);
+}
+.radar-val{
+  font-family:var(--font-mono);
+  font-size:11px;
+  fill:var(--fg-1);
+  font-weight:600;
+}
+
+/* === CALL LIST === */
+.call-list{display:flex; flex-direction:column; gap:8px}
+.call-row{
+  display:grid;
+  grid-template-columns: 64px 1fr 80px 100px 80px 28px;
+  align-items:center;
+  gap:16px;
+  padding:18px 20px;
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-sm);
+  cursor:pointer;
+  transition:all 200ms var(--ease-out);
+}
+.call-row:hover{
+  border-color:var(--border-2);
+  background:var(--bg-2);
+  transform:translateX(2px);
+}
+.call-time{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--fg-3);
+}
+.call-client{
+  font-size:14px;
+  font-weight:500;
+}
+.call-client .topic{
+  display:block;
+  font-size:12px;
+  color:var(--fg-3);
+  margin-top:2px;
+  font-weight:400;
+}
+.call-dur{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--fg-3);
+}
+.call-result{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  padding:6px 10px;
+  border-radius:var(--r-xl);
+  text-align:center;
+  white-space:nowrap;
+}
+.call-result.win{background:rgba(124,219,142,0.14); color:var(--good)}
+.call-result.lost{background:rgba(229,91,91,0.14); color:var(--bad)}
+.call-result.next{background:rgba(242,219,130,0.14); color:var(--brand-accent)}
+.call-score{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:14px;
+  text-align:right;
+}
+.call-score.good{color:var(--good)}
+.call-score.warn{color:var(--brand-accent)}
+.call-score.bad{color:var(--bad)}
+.call-arrow{color:var(--fg-4); justify-self:end}
+
+/* === CALL DETAIL === */
+.call-detail-h{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:32px;
+  align-items:flex-end;
+  margin-bottom:32px;
+  padding-bottom:24px;
+  border-bottom:1px solid var(--border-1);
+}
+.call-detail-h h1{
+  font-size:40px; font-weight:700;
+  letter-spacing:-0.04em; line-height:1;
+}
+.call-detail-h .meta{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--fg-3);
+  margin-top:10px;
+  line-height:1.6;
+}
+.call-tags{display:flex; gap:8px; align-items:center}
+.tag-result{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  padding:8px 14px;
+  border-radius:var(--r-xl);
+}
+.tag-result.win{background:rgba(124,219,142,0.16); color:var(--good)}
+.tag-result.lost{background:rgba(229,91,91,0.16); color:var(--bad)}
+.tag-result.next{background:rgba(242,219,130,0.16); color:var(--brand-accent)}
+
+/* === SCORES STRIP === */
+.scores-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin-bottom:32px;
+}
+.score-cell{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-sm);
+  padding:18px 20px;
+}
+.score-cell .lbl{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-bottom:10px;
+}
+.score-cell .num{
+  font-family:var(--font-mono);
+  font-weight:600;
+  font-size:24px;
+  letter-spacing:-0.02em;
+}
+.score-cell .num.good{color:var(--good)}
+.score-cell .num.warn{color:var(--brand-accent)}
+.score-cell .num.bad{color:var(--bad)}
+.score-cell .bar{
+  margin-top:10px;
+  height:4px;
+  background:var(--bg-3);
+  border-radius:2px;
+  overflow:hidden;
+}
+.score-cell .bar-fill{
+  height:100%;
+  background:var(--brand-accent);
+  border-radius:2px;
+  transition:width 600ms var(--ease-out);
+}
+.score-cell .bar-fill.good{background:var(--good)}
+.score-cell .bar-fill.bad{background:var(--bad)}
+
+/* === TRANSCRIPT === */
+.transcript-grid{
+  display:grid;
+  grid-template-columns:1.5fr 1fr;
+  gap:16px;
+}
+@media (max-width:1100px){
+  .transcript-grid{grid-template-columns:1fr}
+  .scores-strip{grid-template-columns:repeat(2,1fr)}
+}
+.transcript{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:32px;
+  max-height:780px;
+  overflow-y:auto;
+}
+.transcript-line{
+  display:grid;
+  grid-template-columns:80px 1fr;
+  gap:18px;
+  padding:14px 0;
+  font-size:15px;
+  line-height:1.6;
+  border-bottom:1px solid var(--border-1);
+}
+.transcript-line:last-child{border-bottom:none}
+.transcript-who{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  padding-top:3px;
+}
+.transcript-who.mgr{color:var(--brand-accent)}
+.transcript-text{color:var(--fg-2)}
+.transcript-line.flag-bad{
+  background:rgba(229,91,91,0.06);
+  margin:0 -16px;
+  padding:14px 16px;
+  border-radius:8px;
+  border-left:2px solid var(--bad);
+  border-bottom-color:transparent;
+}
+.transcript-line.flag-good{
+  background:rgba(124,219,142,0.06);
+  margin:0 -16px;
+  padding:14px 16px;
+  border-radius:8px;
+  border-left:2px solid var(--good);
+  border-bottom-color:transparent;
+}
+.transcript-flag{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  margin-top:6px;
+  display:inline-block;
+}
+.transcript-flag.bad{color:var(--bad)}
+.transcript-flag.good{color:var(--good)}
+
+/* === ANALYSIS PANEL === */
+.analysis{
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-md);
+  padding:32px;
+  position:sticky;
+  top:120px;
+  align-self:flex-start;
+  max-height:780px;
+  overflow-y:auto;
+}
+.analysis h4{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  margin-bottom:14px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border-1);
+}
+.analysis h4:not(:first-child){margin-top:24px}
+.analysis ul{list-style:none}
+.analysis li{
+  font-size:14px;
+  line-height:1.55;
+  padding:10px 0 10px 22px;
+  position:relative;
+  color:var(--fg-2);
+}
+.analysis li::before{
+  content:'';
+  position:absolute;
+  left:0; top:18px;
+  width:8px; height:8px;
+  border-radius:50%;
+}
+.analysis li.bad::before{background:var(--bad)}
+.analysis li.good::before{background:var(--good)}
+.analysis li.note::before{background:var(--brand-accent)}
+.analysis-rec{
+  background:var(--bg-2);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-sm);
+  padding:18px;
+  margin-top:18px;
+}
+.analysis-rec .label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--brand-accent);
+  margin-bottom:10px;
+}
+.analysis-rec p{
+  font-size:14px;
+  line-height:1.55;
+  color:var(--fg-1);
+}
+
+/* === FOOTER === */
+.footer{
+  border-top:1px solid var(--border-1);
+  margin-top:96px;
+  padding:32px 48px;
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--fg-4);
+  text-align:center;
+}
+.footer span{color:var(--brand-accent)}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar{width:8px; height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg-3); border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--fg-4)}
+
+/* === FADE IN / VIEW TRANSITIONS === */
+.fade-in{animation:fadeIn 520ms var(--ease-out) both}
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(12px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.stagger > *{
+  animation:staggerIn 600ms var(--ease-out) both;
+  opacity:0;
+}
+@keyframes staggerIn{
+  from{opacity:0; transform:translateY(16px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.stagger > *:nth-child(1){animation-delay:60ms}
+.stagger > *:nth-child(2){animation-delay:140ms}
+.stagger > *:nth-child(3){animation-delay:220ms}
+.stagger > *:nth-child(4){animation-delay:300ms}
+.stagger > *:nth-child(5){animation-delay:380ms}
+.stagger > *:nth-child(6){animation-delay:460ms}
+.stagger > *:nth-child(7){animation-delay:540ms}
+.stagger > *:nth-child(8){animation-delay:620ms}
+
+/* Reveal on scroll */
+.reveal{
+  opacity:0;
+  transform:translateY(24px);
+  transition:opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+  will-change:opacity, transform;
+}
+.reveal.in{opacity:1; transform:translateY(0)}
+
+/* Soft hover lift on cards */
+.kpi, .insight, .card{
+  transition:transform 320ms var(--ease-out), border-color 280ms var(--ease-out), background 280ms var(--ease-out), box-shadow 320ms var(--ease-out);
+  will-change:transform;
+}
+.kpi:hover{
+  transform:translateY(-2px);
+  border-color:var(--border-2);
+  box-shadow:0 18px 40px -22px rgba(0,0,0,.6);
+}
+.card:hover{border-color:var(--border-2)}
+
+/* Pulse for urgent insight tag */
+@keyframes softPulse{
+  0%,100%{opacity:1}
+  50%{opacity:.55}
+}
+.insight.urgent .insight-tag{animation:softPulse 2.4s ease-in-out infinite}
+
+/* Bar fill grow */
+.bar-fill{animation:barGrow 900ms var(--ease-out) both}
+@keyframes barGrow{from{width:0 !important}}
+
+/* Donut stroke draw */
+@keyframes drawDash{
+  from{stroke-dashoffset:1000}
+}
+.donut svg circle:not(:first-child){
+  animation:drawDash 1200ms var(--ease-out) both;
+}
+
+/* Line chart path draw */
+.chart-line{
+  stroke-dasharray:2000;
+  animation:lineDraw 1400ms var(--ease-out) both;
+}
+@keyframes lineDraw{
+  from{stroke-dashoffset:2000}
+  to{stroke-dashoffset:0}
+}
+.chart-area{
+  animation:fadeIn 1200ms var(--ease-out) 600ms both;
+}
+.chart-dot{
+  animation:fadeIn 400ms var(--ease-out) both;
+  transform-origin:center;
+}
+.chart-dot:nth-child(odd){animation-delay:1100ms}
+.chart-dot:nth-child(even){animation-delay:1300ms}
+
+/* Radar appearance */
+.radar-shape{
+  transform-origin:center;
+  animation:radarPop 900ms var(--ease-out) 200ms both;
+}
+@keyframes radarPop{
+  from{transform:scale(0.4); opacity:0}
+  to{transform:scale(1); opacity:1}
+}
+.radar-dot{
+  animation:fadeIn 400ms var(--ease-out) 800ms both;
+}
+
+/* Sparkline draw */
+.mgr-spark path{
+  stroke-dasharray:600;
+  animation:lineDraw 1200ms var(--ease-out) both;
+}
+
+/* Page heading rise */
+.page-h h1{
+  animation:headingRise 700ms var(--ease-out) both;
+}
+@keyframes headingRise{
+  from{opacity:0; transform:translateY(20px); letter-spacing:-0.07em}
+  to{opacity:1; transform:translateY(0); letter-spacing:-0.05em}
+}
+
+/* Number counter target */
+.kpi-value, .donut-center .num, .mgr-detail-score .num, .mgr-score{
+  font-variant-numeric:tabular-nums;
+}
+
+/* Smooth row entry */
+.call-row{
+  animation:rowSlide 500ms var(--ease-out) both;
+}
+@keyframes rowSlide{
+  from{opacity:0; transform:translateX(-12px)}
+  to{opacity:1; transform:translateX(0)}
+}
+.call-list .call-row:nth-child(1){animation-delay:40ms}
+.call-list .call-row:nth-child(2){animation-delay:90ms}
+.call-list .call-row:nth-child(3){animation-delay:140ms}
+.call-list .call-row:nth-child(4){animation-delay:190ms}
+.call-list .call-row:nth-child(5){animation-delay:240ms}
+.call-list .call-row:nth-child(6){animation-delay:290ms}
+.call-list .call-row:nth-child(7){animation-delay:340ms}
+.call-list .call-row:nth-child(8){animation-delay:390ms}
+
+/* Transcript line entry */
+.transcript-line{
+  animation:lineFade 500ms var(--ease-out) both;
+}
+@keyframes lineFade{
+  from{opacity:0; transform:translateY(6px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.transcript-line:nth-child(1){animation-delay:80ms}
+.transcript-line:nth-child(2){animation-delay:140ms}
+.transcript-line:nth-child(3){animation-delay:200ms}
+.transcript-line:nth-child(4){animation-delay:260ms}
+.transcript-line:nth-child(5){animation-delay:320ms}
+.transcript-line:nth-child(n+6){animation-delay:380ms}
+
+/* Period tab indicator slide */
+.nav-period button{position:relative; z-index:1}
+.nav-period button.active{
+  box-shadow:0 8px 22px -8px rgba(242,219,130,.5);
+}
+
+/* Score number countup baseline */
+.count-up{display:inline-block}
+
+/* Smooth hash navigation */
+html{scroll-behavior:smooth}
+
+/* Reduced motion fallback */
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* === FILTER BAR === */
+.mgr-filter{
+  display:flex; gap:8px; margin-bottom:24px;
+  flex-wrap:wrap;
+}
+.mgr-filter button{
+  padding:8px 16px;
+  background:var(--bg-1);
+  border:1px solid var(--border-1);
+  border-radius:var(--r-xl);
+  font-size:13px;
+  font-weight:500;
+  color:var(--fg-3);
+  letter-spacing:-0.01em;
+  transition:all 200ms;
+}
+.mgr-filter button:hover{color:var(--fg-1); border-color:var(--border-2)}
+.mgr-filter button.active{
+  background:var(--brand-accent);
+  color:var(--fg-invert);
+  border-color:var(--brand-accent);
+}
+</style>
+</head>
+<body>
+
+<!-- ========== NAV ========== -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-bolt">⚡</div>
+    <div>
+      <div class="nav-title">Мастодонт <span>РОП</span></div>
+      <div class="nav-meta">Контроль качества звонков · v0.1</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-period" id="period-tabs">
+      <button data-period="day" class="active">Сегодня</button>
+      <button data-period="week">Неделя</button>
+      <button data-period="month">Месяц</button>
+      <button data-period="quarter">Квартал</button>
+    </div>
+    <div class="nav-user">МГ</div>
+  </div>
+</nav>
+
+<!-- ========== VIEW: OVERVIEW ========== -->
+<main id="view-overview" class="shell fade-in"></main>
+
+<!-- ========== VIEW: MANAGER ========== -->
+<main id="view-manager" class="shell fade-in" hidden></main>
+
+<!-- ========== VIEW: CALL ========== -->
+<main id="view-call" class="shell fade-in" hidden></main>
+
+<footer class="footer">
+  Мастодонт РОП · Synthetic data demo · Curated by <span>ИИ Мастодонт</span>
+</footer>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+
+const MANAGERS = [
+  {
+    id:'galina',
+    name:'Галина Орлова',
+    role:'Старший менеджер · 2.5 года',
+    initials:'ГО',
+    tier:'top',
+  },
+  {
+    id:'artem',
+    name:'Артём Соколов',
+    role:'Менеджер · 1.5 года',
+    initials:'АС',
+    tier:'mid',
+  },
+  {
+    id:'nikita',
+    name:'Никита Волков',
+    role:'Менеджер · 1 год',
+    initials:'НВ',
+    tier:'mid',
+  },
+  {
+    id:'darya',
+    name:'Дарья Левитан',
+    role:'Джуниор · 4 месяца',
+    initials:'ДЛ',
+    tier:'jun',
+  },
+  {
+    id:'oleg',
+    name:'Олег Маринин',
+    role:'Менеджер · 2 года',
+    initials:'ОМ',
+    tier:'mid',
+  },
+];
+
+/* For each manager: scores per period (script, objection, empathy, need, close)
+   + daily timeseries (30 points), call counts, deal sums */
+
+function seedRand(seed){
+  let s = seed;
+  return () => { s = (s * 9301 + 49297) % 233280; return s/233280; };
+}
+
+function genTimeseries(rand, base, vol){
+  const arr=[];
+  let v = base;
+  for(let i=0;i<30;i++){
+    v += (rand()-0.5)*vol;
+    v = Math.max(35, Math.min(98, v));
+    arr.push(Math.round(v));
+  }
+  return arr;
+}
+
+const PERIODS = ['day','week','month','quarter'];
+
+const STATS = {
+  galina: {
+    day:    {scores:[88,82,92,86,80], calls:7, dur:62, deals:1, sum:120000, conv:14},
+    week:   {scores:[90,84,93,88,83], calls:34,dur:58, deals:6, sum:720000, conv:18},
+    month:  {scores:[89,83,92,87,81], calls:142,dur:60, deals:24,sum:2880000,conv:17},
+    quarter:{scores:[88,82,91,86,80], calls:412,dur:61, deals:68,sum:8160000,conv:17},
+  },
+  artem: {
+    day:    {scores:[78,72,76,80,74], calls:6, dur:48, deals:1, sum:90000, conv:17},
+    week:   {scores:[80,74,77,81,75], calls:31,dur:50, deals:4, sum:430000, conv:13},
+    month:  {scores:[79,73,76,80,74], calls:128,dur:51, deals:14,sum:1620000,conv:11},
+    quarter:{scores:[77,71,75,78,72], calls:380,dur:52, deals:38,sum:4480000,conv:10},
+  },
+  nikita: {
+    day:    {scores:[74,68,80,72,66], calls:5, dur:42, deals:0, sum:0, conv:0},
+    week:   {scores:[75,69,79,73,67], calls:28,dur:44, deals:3, sum:340000, conv:11},
+    month:  {scores:[74,68,78,72,66], calls:118,dur:45, deals:11,sum:1290000,conv:9},
+    quarter:{scores:[73,67,77,71,65], calls:340,dur:46, deals:32,sum:3760000,conv:9},
+  },
+  darya: {
+    day:    {scores:[68,55,82,72,52], calls:4, dur:38, deals:0, sum:0, conv:0},
+    week:   {scores:[70,58,83,74,55], calls:21,dur:40, deals:2, sum:220000, conv:10},
+    month:  {scores:[69,57,82,73,54], calls:78,dur:41, deals:6, sum:680000, conv:8},
+    quarter:{scores:[67,55,80,71,52], calls:210,dur:42, deals:14,sum:1620000,conv:7},
+  },
+  oleg: {
+    day:    {scores:[62,68,58,60,72], calls:8, dur:32, deals:2, sum:240000, conv:25},
+    week:   {scores:[64,70,60,62,74], calls:38,dur:34, deals:8, sum:920000, conv:21},
+    month:  {scores:[63,69,59,61,73], calls:160,dur:35, deals:28,sum:3260000,conv:18},
+    quarter:{scores:[62,68,58,60,72], calls:480,dur:36, deals:78,sum:9120000,conv:16},
+  },
+};
+
+const CRITERIA = [
+  {key:'script',  short:'Скр', full:'Скрипт'},
+  {key:'object',  short:'Воз', full:'Возражения'},
+  {key:'empathy', short:'Эмп', full:'Эмпатия'},
+  {key:'need',    short:'Пот', full:'Потребность'},
+  {key:'close',   short:'Зак', full:'Закрытие'},
+];
+
+/* Daily timeseries for each manager */
+const TS = {
+  galina: genTimeseries(seedRand(1), 88, 8),
+  artem:  genTimeseries(seedRand(2), 78, 9),
+  nikita: genTimeseries(seedRand(3), 73, 10),
+  darya:  genTimeseries(seedRand(4), 67, 13),
+  oleg:   genTimeseries(seedRand(5), 64, 11),
+};
+
+/* Calls per manager - synthetic, with timestamps */
+const CALLS = [
+  // GALINA
+  {id:'c1', mgr:'galina', time:'09:14', dur:'1ч 28м', client:'Андрей К.', topic:'Запрос — повышение чека на консалтинге', result:'win', score:94, scores:[95,90,98,92,95]},
+  {id:'c2', mgr:'galina', time:'10:42', dur:'52м',    client:'Светлана М.', topic:'Менеджер маркетинга, выбирает между 2 курсами', result:'next', score:88, scores:[88,82,92,90,86]},
+  {id:'c3', mgr:'galina', time:'12:05', dur:'38м',    client:'Игорь Д.', topic:'Самозанятый, копирайтер', result:'win', score:91, scores:[92,88,95,90,90]},
+  {id:'c4', mgr:'galina', time:'13:30', dur:'1ч 15м', client:'Елена П.', topic:'HR из крупной компании', result:'next', score:85, scores:[86,80,90,88,80]},
+  {id:'c5', mgr:'galina', time:'15:18', dur:'42м',    client:'Виктор Н.', topic:'Не понимает, для чего ему ИИ', result:'lost', score:74, scores:[78,68,82,72,70]},
+  {id:'c6', mgr:'galina', time:'16:48', dur:'58м',    client:'Анна Р.', topic:'Дизайнер, ищет автоматизацию', result:'win', score:89, scores:[90,86,92,88,88]},
+  {id:'c7', mgr:'galina', time:'18:22', dur:'46м',    client:'Михаил Б.', topic:'Возражение про цену', result:'next', score:83, scores:[85,76,88,84,82]},
+
+  // ARTEM
+  {id:'c8',  mgr:'artem', time:'09:30', dur:'40м',    client:'Дмитрий Л.', topic:'Программист, хочет переход в ИИ', result:'next', score:82, scores:[84,76,80,86,82]},
+  {id:'c9',  mgr:'artem', time:'11:00', dur:'52м',    client:'Ольга К.', topic:'Бухгалтер, тёплый лид', result:'win', score:81, scores:[82,78,79,84,80]},
+  {id:'c10', mgr:'artem', time:'12:48', dur:'44м',    client:'Сергей Т.', topic:'Ушёл думать про оплату', result:'next', score:75, scores:[78,68,76,78,75]},
+  {id:'c11', mgr:'artem', time:'14:30', dur:'36м',    client:'Полина Е.', topic:'Сравнивает с конкурентами', result:'lost', score:68, scores:[72,58,70,74,66]},
+  {id:'c12', mgr:'artem', time:'16:10', dur:'58м',    client:'Артур Г.', topic:'Запрос на корпоративное обучение', result:'next', score:84, scores:[86,80,82,86,84]},
+  {id:'c13', mgr:'artem', time:'17:50', dur:'42м',    client:'Юлия А.', topic:'Маркетолог, очень холодная', result:'lost', score:71, scores:[74,64,72,78,68]},
+
+  // NIKITA
+  {id:'c14', mgr:'nikita', time:'10:00', dur:'38м',    client:'Кирилл С.', topic:'Ученик прошлого потока, апсейл', result:'next', score:76, scores:[78,70,82,74,68]},
+  {id:'c15', mgr:'nikita', time:'11:42', dur:'50м',    client:'Татьяна В.', topic:'Возражение «дорого»', result:'lost', score:64, scores:[68,52,76,68,55]},
+  {id:'c16', mgr:'nikita', time:'13:18', dur:'42м',    client:'Алексей З.', topic:'Видеомейкер, рассматривает', result:'next', score:78, scores:[80,72,84,78,72]},
+  {id:'c17', mgr:'nikita', time:'15:04', dur:'34м',    client:'Иван Х.', topic:'Не дозвонился, перенос', result:'next', score:72, scores:[74,68,78,72,66]},
+  {id:'c18', mgr:'nikita', time:'17:20', dur:'48м',    client:'Мария О.', topic:'Хочет рассрочку 12 мес', result:'lost', score:69, scores:[72,64,76,68,62]},
+
+  // DARYA
+  {id:'c19', mgr:'darya', time:'10:30', dur:'38м',    client:'Роман Е.', topic:'Тёплый лид, спрашивает про результаты', result:'next', score:72, scores:[74,62,84,72,60]},
+  {id:'c20', mgr:'darya', time:'12:15', dur:'42м',    client:'Карина Н.', topic:'Возражение про время', result:'lost', score:62, scores:[66,48,80,66,52]},
+  {id:'c21', mgr:'darya', time:'14:48', dur:'34м',    client:'Денис Ф.', topic:'Бизнес-аналитик, свой проект', result:'next', score:74, scores:[76,60,86,74,58]},
+  {id:'c22', mgr:'darya', time:'16:22', dur:'40м',    client:'Лидия К.', topic:'Скептик, проверяет качество', result:'lost', score:65, scores:[68,52,82,68,55]},
+
+  // OLEG
+  {id:'c23', mgr:'oleg', time:'09:48', dur:'28м',    client:'Павел Ш.', topic:'Готовый лид, уже решил', result:'win', score:78, scores:[76,82,68,72,90]},
+  {id:'c24', mgr:'oleg', time:'10:55', dur:'34м',    client:'Наталья Р.', topic:'Хочет быстрых результатов', result:'win', score:74, scores:[72,78,64,70,86]},
+  {id:'c25', mgr:'oleg', time:'12:20', dur:'30м',    client:'Юрий М.', topic:'Жёсткое возражение про возврат', result:'next', score:68, scores:[64,76,58,62,80]},
+  {id:'c26', mgr:'oleg', time:'13:50', dur:'38м',    client:'Алёна Т.', topic:'Спрашивает про преподавателей', result:'lost', score:58, scores:[58,62,52,56,62]},
+  {id:'c27', mgr:'oleg', time:'15:18', dur:'30м',    client:'Геннадий П.', topic:'Грубоватый разговор', result:'next', score:62, scores:[60,68,52,58,72]},
+  {id:'c28', mgr:'oleg', time:'16:42', dur:'34м',    client:'Анастасия Ж.', topic:'Хочет диагностику бесплатно', result:'next', score:65, scores:[62,72,56,62,76]},
+  {id:'c29', mgr:'oleg', time:'17:55', dur:'32м',    client:'Тимур В.', topic:'Готов, оплатил', result:'win', score:72, scores:[68,76,62,66,82]},
+  {id:'c30', mgr:'oleg', time:'19:08', dur:'30м',    client:'Лиза Г.', topic:'Нужен мужской подход — холодный', result:'lost', score:54, scores:[52,60,46,52,60]},
+];
+
+/* TRANSCRIPTS (for a couple of calls in detail) */
+const TRANSCRIPTS = {
+  c1: {
+    summary:'Андрей — действующий консалтер с чеком 80К ₽. Звонок прошёл идеально: Галина выявила потребность в автоматизации диагностик, обработала возражение про время на обучение, закрыла на оплату 120К через 14 минут после её упоминания.',
+    pros:[
+      'Открыла звонок мощным якорем — кейсом ученика, который вышел на 350К/мес',
+      'Выявила боль клиента на 4-й минуте: тратит 12 часов в неделю на ручные диагностики',
+      'Развернула возражение «нет времени» через цифры: 4 часа в неделю окупятся за 2 недели',
+      'Закрыла на оплату через дедлайн (рассрочка только до пятницы)',
+    ],
+    cons:[
+      'Можно было увеличить средний чек — у клиента запрос на VIP-тариф был, но не отработала',
+    ],
+    rec:'Закрепить как эталонный звонок. Отправить расшифровку всей команде на разбор в понедельник.',
+    lines:[
+      {who:'mgr', text:'Андрей, добрый день. Это Галина из Мастодонта. Вы оставляли заявку на разбор после вебинара — есть 30-40 минут поговорить?'},
+      {who:'client', text:'Да, давайте. У меня сейчас как раз окно.'},
+      {who:'mgr', text:'Отлично. Перед тем как я начну, расскажите коротко — на каком уровне сейчас? Что делаете, какой чек средний?'},
+      {who:'client', text:'Я консалтер, помогаю онлайн-школам с упаковкой. Чек примерно 80 тысяч за проект, веду 4-5 параллельно.'},
+      {who:'mgr', text:'Понятно. И что не устраивает — почему пришли именно к нам?'},
+      {who:'client', text:'Время съедают диагностики. Каждая по часу, плюс подготовка, плюс отчёт. Уходит 12 часов в неделю только на это.', flag:'good', flagText:'Боль выявлена'},
+      {who:'mgr', text:'12 часов — это полтора рабочих дня. Слушайте, у нас был ученик ровно с такой же задачей — Виталий из Питера. Через 3 недели после старта он сделал бота, который проводит первичную диагностику за клиента. Сэкономил 8 часов в неделю и поднял чек до 130 тысяч. Вот это конкретный кейс.'},
+      {who:'client', text:'Да, это интересно. Но мне страшновато — я не очень технический. Не уверен что осилю.'},
+      {who:'mgr', text:'Андрей, смотрите. У нас сейчас на курсе 1840 выпускников. Из них минимум треть — гуманитарии без бэкграунда. Один из лучших выпускников — учитель русского из Воронежа. Если она справилась, у вас точно получится. Плюс мы даём личного куратора на 60 дней.'},
+      {who:'client', text:'А по деньгам? Я слышал, около 100 тысяч?'},
+      {who:'mgr', text:'Базовый тариф — 90 тысяч. Но у нас сейчас идёт пакет с Pro-куратором за 120, и там идут 4 индивидуальные сессии лично с Матвеем. Учитывая что у вас уже консалтинг — Pro окупится после первой автоматизации.'},
+      {who:'client', text:'А рассрочка есть?'},
+      {who:'mgr', text:'Да, до 12 месяцев. Это 10 тысяч в месяц на базовом тарифе. Но рассрочка идёт только при оплате до пятницы — сейчас закрытая воронка.', flag:'good', flagText:'Дедлайн использован'},
+      {who:'client', text:'Хорошо. Я готов брать Pro. Куда платить?'},
+      {who:'mgr', text:'Сейчас сброшу ссылку на Telegram. Оплатите — и через 15 минут вы уже в закрытом канале. Стартовый звонок с куратором на этой неделе. Договорились?'},
+      {who:'client', text:'Договорились.'},
+    ]
+  },
+  c15: {
+    summary:'Татьяна — холодный лид с Avito. Никита провалил отработку возражения про цену на 3-й минуте, не выявил истинную потребность, не закрыл на следующий шаг. Лид потерян окончательно.',
+    pros:[
+      'Хороший открытый тон, клиент не закрылся в первые 30 секунд',
+    ],
+    cons:[
+      'На вопрос «сколько стоит» сразу назвал цену без выяснения боли — критическая ошибка',
+      'Не отработал возражение «дорого» — извинялся вместо аргументации',
+      'Не использовал кейсы и социальное доказательство',
+      'Закончил звонок без следующего шага — «подумайте и напишите если что»',
+    ],
+    rec:'Никите — обязательная отработка модуля «Возражение про цену» из курса РОПа. Прослушать звонки Галины (c1, c3) как эталон. Контрольный звонок через 48 часов.',
+    lines:[
+      {who:'mgr', text:'Татьяна, здравствуйте. Это Никита из Мастодонта. Вы оставляли заявку?'},
+      {who:'client', text:'Да, оставляла. Расскажите что у вас и сколько стоит.'},
+      {who:'mgr', text:'У нас курс по заработку на ИИ. Стоит 90 тысяч.', flag:'bad', flagText:'Цена названа без выяснения боли'},
+      {who:'client', text:'Девяносто тысяч? Это очень дорого. У меня нет таких денег.'},
+      {who:'mgr', text:'Ну, есть рассрочка на 12 месяцев. Это 7-8 тысяч в месяц.'},
+      {who:'client', text:'Всё равно дорого. У меня зарплата 60 тысяч, я не могу столько отдавать.'},
+      {who:'mgr', text:'Понимаю вас. Извините, что так. Может, вам в другом месте поискать что-то подешевле?', flag:'bad', flagText:'Слив клиента вместо аргументации'},
+      {who:'client', text:'А что я конкретно получу?'},
+      {who:'mgr', text:'Курс на 6 месяцев, 14 модулей, чат, эфиры. Куратор есть.'},
+      {who:'client', text:'И всё? И что я смогу делать после этого?'},
+      {who:'mgr', text:'Ну... зарабатывать на нейросетях. У нас многие выпускники зарабатывают больше.', flag:'bad', flagText:'Нет конкретики и кейсов'},
+      {who:'client', text:'А кто-то ваши выпускники окупил курс?'},
+      {who:'mgr', text:'Многие окупают. Точные цифры не помню.', flag:'bad', flagText:'Менеджер не знает кейсов'},
+      {who:'client', text:'Хорошо, я подумаю.'},
+      {who:'mgr', text:'Хорошо, подумайте и напишите если что.', flag:'bad', flagText:'Нет следующего шага'},
+    ]
+  },
+  c20: {
+    summary:'Карина — лид с Telegram-канала, мать в декрете. Дарья показала отличную эмпатию, но провалила работу с возражением про время и не закрыла на следующий шаг.',
+    pros:[
+      'Очень тёплый и эмпатичный тон с самого начала',
+      'Хорошо выявила контекст клиента (декрет, ребёнок 8 месяцев)',
+      'Не давила и не пыталась манипулировать',
+    ],
+    cons:[
+      'Возражение «нет времени учиться» приняла слишком легко — не аргументировала',
+      'Не предложила гибкий формат обучения — у нас он есть',
+      'Закрыла на «может потом» — не зафиксировала конкретный следующий шаг',
+    ],
+    rec:'Дарье — практика по работе с возражением «нет времени». Дать готовые скрипты с гибким графиком. Назначить совместный звонок с Галиной для разбора.',
+    lines:[
+      {who:'mgr', text:'Карина, привет. Это Дарья из Мастодонта. Удобно говорить?'},
+      {who:'client', text:'Да, ребёнок спит. Минут 20-30 есть.'},
+      {who:'mgr', text:'Поняла, постараюсь не задерживать. Расскажите, что вас привело — почему оставили заявку?', flag:'good', flagText:'Тёплое открытие'},
+      {who:'client', text:'Я в декрете, ребёнку 8 месяцев. Хочу не возвращаться в найм после декрета. Думаю про что-то с ИИ.'},
+      {who:'mgr', text:'Понимаю. У нас в потоке как раз много таких девушек — мам в декрете. Многие как раз с этого и стартовали.'},
+      {who:'client', text:'А по времени как? У меня очень рваный график. Сегодня например только 30 минут пока ребёнок спит.'},
+      {who:'mgr', text:'Да, у нас 6 месяцев курс, около 2-3 часов в неделю. Может быть сложновато.', flag:'bad', flagText:'Не аргументировала, не предложила гибкий формат'},
+      {who:'client', text:'Два-три часа в неделю я найти не смогу. У меня нет такого окна.'},
+      {who:'mgr', text:'Понимаю. Возможно, сейчас не лучшее время.', flag:'bad', flagText:'Согласилась с возражением вместо отработки'},
+      {who:'client', text:'Да, наверное вы правы. Я подумаю когда ребёнок чуть подрастёт.'},
+      {who:'mgr', text:'Хорошо. Если что, я на связи.', flag:'bad', flagText:'Нет конкретного следующего шага'},
+      {who:'client', text:'Спасибо.'},
+    ]
+  },
+  c5: {
+    summary:'Виктор — холодный лид с YouTube. Не понимал зачем ему ИИ. Галина грамотно вела, но клиент оказался не целевой — нет реального бизнес-запроса.',
+    pros:[
+      'Спокойно вытаскивала контекст вопросами',
+      'Не давила, увидев что лид не целевой',
+      'Корректно завершила звонок с открытой дверью',
+    ],
+    cons:[
+      'Можно было раньше завершить — потратила 42 минуты на нецелевого',
+      'Не передала контакт в нурчуринг для прогрева',
+    ],
+    rec:'Эталон поведения с нецелевым лидом. Передать в воронку прогрева через бота.',
+    lines:[
+      {who:'mgr', text:'Виктор, добрый день. Это Галина из Мастодонта.'},
+      {who:'client', text:'Здравствуйте. Я заявку оставлял из любопытства, если честно.'},
+      {who:'mgr', text:'Понятно. Расскажите, чем сейчас занимаетесь? Что привлекло в теме ИИ?'},
+      {who:'client', text:'Я работаю на заводе, инженер. Видел ваше видео в YouTube, стало интересно. Но я не очень понимаю, зачем мне это.'},
+      {who:'mgr', text:'А есть какие-то задачи на работе или вне её, где вы тратите много времени и думаете «как бы это автоматизировать»?'},
+      {who:'client', text:'Не особо. У меня всё устраивает.'},
+      {who:'mgr', text:'Понимаю. Тогда вопрос — есть желание что-то менять, новые навыки осваивать?'},
+      {who:'client', text:'Скорее нет. Я просто посмотреть хотел.'},
+      {who:'mgr', text:'Виктор, тогда честно — наш курс вам сейчас не нужен. Это серьёзная история на 6 месяцев и 90 тысяч. Без конкретной цели — деньги в воздух.', flag:'good', flagText:'Честность вместо впаривания'},
+      {who:'client', text:'Спасибо что прямо сказали. Я ценю.'},
+      {who:'mgr', text:'Подпишитесь на канал Мастодонта в Telegram — там бесплатный контент. Если возникнет конкретная задача, возвращайтесь.'},
+    ]
+  }
+};
+
+const ROP_INSIGHTS = {
+  day: {
+    headline: 'Команда сделала <strong>30 диагностик</strong> и закрыла <strong>4 сделки на 450К ₽</strong>. Главное: <strong>Никита сливает возражение «дорого»</strong> третий день подряд — нужен срочный разбор.',
+    cards: [
+      {tone:'urgent', tag:'Красный флаг', title:'Никита проседает по возражениям', body:'Скор «Возражения» — 68 при норме 75+. 3 потерянных лида подряд из-за слитой цены.', cta:'Разобрать звонок c15'},
+      {tone:'win', tag:'Лидер дня', title:'Галина — 7 звонков, скор 88', body:'Эталонная отработка возражения про время на звонке c1. Сделка 120К ₽ за 87 минут.', cta:'Сохранить как эталон'},
+      {tone:'note', tag:'Тренд', title:'Олег жертвует качеством ради скорости', body:'8 звонков по 30 минут, конверсия 25%. Но скор по эмпатии и потребности — 58. Долгосрочный риск.', cta:'Балансировать KPI'},
+    ]
+  },
+  week: {
+    headline: 'За неделю команда провела <strong>152 звонка</strong>, закрыла <strong>23 сделки на 2.6M ₽</strong>. Главный риск: <strong>Дарья теряет 60% лидов</strong> на возражениях — нужен план развития.',
+    cards: [
+      {tone:'urgent', tag:'Красный флаг', title:'Дарья — критичный скор по возражениям', body:'Скор 58 при норме 70. Тёплый тон не компенсирует слабую аргументацию. Нужен наставник.', cta:'Назначить Галину куратором'},
+      {tone:'win', tag:'Лидер недели', title:'Олег закрыл 8 сделок на 920К ₽', body:'Лучший по конверсии (21%). Но скор качества 64 — балансируется объёмом.', cta:'Дать VIP-лиды'},
+      {tone:'note', tag:'Тренд', title:'Команда теряет 30% лидов на этапе потребности', body:'Средний скор по выявлению потребности — 73. У топ-ученика курса РОПа — 88+.', cta:'Запустить тренинг'},
+    ]
+  },
+  month: {
+    headline: 'Месяц закрыли с <strong>83 сделками на 9.7M ₽</strong> и средним скором <strong>74</strong>. Главный вывод: <strong>команда выросла по скорости</strong>, но <strong>просела по эмпатии</strong> на 8 пунктов.',
+    cards: [
+      {tone:'win', tag:'Достижение', title:'Сделок +18% к прошлому месяцу', body:'9.7M ₽ при плане 8M. Сильнее всего вытягивает Олег и Галина — 62% выручки команды.', cta:'Премировать топ-2'},
+      {tone:'urgent', tag:'Тревога', title:'Эмпатия упала на 8 пунктов', body:'Команда стала более «механичной». NPS клиентов после звонка снизился. Источник — давление по плану.', cta:'Снять часть KPI'},
+      {tone:'note', tag:'Возможность', title:'Артём готов к роли старшего', body:'Стабильный рост скора 4 месяца подряд. Можно дать менторскую нагрузку — 1 джун.', cta:'Повышение в Q2'},
+    ]
+  },
+  quarter: {
+    headline: 'Квартал: <strong>230 сделок на 27M ₽</strong>, средний скор команды <strong>72</strong>. <strong>Олег</strong> — топ по выручке, <strong>Галина</strong> — топ по качеству. <strong>Дарья</strong> требует решения: рост или замена.',
+    cards: [
+      {tone:'win', tag:'Главный итог', title:'27M ₽ выручки, +24% к прошлому Q', body:'Перевыполнение плана на 12%. Распределение: Олег 33%, Галина 30%, Артём+Никита 30%, Дарья 7%.', cta:'Утвердить бонусы'},
+      {tone:'urgent', tag:'Решение', title:'Дарья — 4 месяца без роста', body:'Скор завис на 67-69. Эмпатия топ, всё остальное проседает. Решить: переводить на чат-поддержку или дать наставника на 60 дней.', cta:'Встреча с HR'},
+      {tone:'note', tag:'Стратегия', title:'Команда нуждается в 6-м менеджере', body:'Загрузка топ-3 — 95%+. Растём в потоке заявок. Нанимать сейчас, чтобы выйти к Q3.', cta:'Открыть вакансию'},
+    ]
+  }
+};
+
+let currentPeriod = 'day';
+
+/* ============================================================
+   ROUTING
+   ============================================================ */
+
+const views = {
+  overview: document.getElementById('view-overview'),
+  manager:  document.getElementById('view-manager'),
+  call:     document.getElementById('view-call'),
+};
+
+function show(view){
+  Object.values(views).forEach(v => v.hidden = true);
+  views[view].hidden = false;
+  views[view].classList.remove('fade-in');
+  void views[view].offsetWidth;
+  views[view].classList.add('fade-in');
+  window.scrollTo({top:0, behavior:'instant'});
+  requestAnimationFrame(() => {
+    setupReveal();
+    runCountUps();
+  });
+}
+
+/* Scroll reveal */
+let revealObserver = null;
+function setupReveal(){
+  if(revealObserver) revealObserver.disconnect();
+  const els = document.querySelectorAll('.section, .two-col');
+  els.forEach(e => e.classList.add('reveal'));
+  revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, {threshold: 0.08, rootMargin:'0px 0px -40px 0px'});
+  els.forEach(e => revealObserver.observe(e));
+}
+
+/* Count-up animation for big numbers */
+function runCountUps(){
+  const targets = document.querySelectorAll('[data-count]');
+  targets.forEach(el => {
+    const final = parseFloat(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+    const dur = 900;
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const v = final * eased;
+      el.textContent = (decimals > 0 ? v.toFixed(decimals) : Math.round(v)) + suffix;
+      if(t < 1) requestAnimationFrame(tick);
+      else el.textContent = (decimals > 0 ? final.toFixed(decimals) : final) + suffix;
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+function navigate(hash){
+  const h = (hash || location.hash || '#/').replace(/^#/,'');
+  if(h === '/' || h === ''){ renderOverview(); show('overview'); return; }
+  const [, type, id] = h.split('/');
+  if(type === 'manager' && id){ renderManager(id); show('manager'); return; }
+  if(type === 'call' && id){ renderCall(id); show('call'); return; }
+  renderOverview(); show('overview');
+}
+
+window.addEventListener('hashchange', () => navigate());
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function avgScore(scores){
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+}
+function scoreClass(s){
+  if(s>=80) return 'good';
+  if(s>=70) return 'warn';
+  return 'bad';
+}
+function fmtMoney(n){
+  if(n >= 1000000) return (n/1000000).toFixed(1).replace('.0','')+'M ₽';
+  if(n >= 1000) return Math.round(n/1000)+'К ₽';
+  return n+' ₽';
+}
+function periodLabel(p){
+  return {day:'СЕГОДНЯ',week:'ЭТА НЕДЕЛЯ',month:'ЭТОТ МЕСЯЦ',quarter:'ЭТОТ КВАРТАЛ'}[p];
+}
+
+/* ============================================================
+   RENDER: OVERVIEW
+   ============================================================ */
+
+function renderOverview(){
+  const p = currentPeriod;
+  const insights = ROP_INSIGHTS[p];
+
+  // Aggregate KPIs
+  const tot = MANAGERS.reduce((acc, m) => {
+    const s = STATS[m.id][p];
+    acc.calls += s.calls;
+    acc.deals += s.deals;
+    acc.sum += s.sum;
+    acc.scores.push(avgScore(s.scores));
+    return acc;
+  }, {calls:0, deals:0, sum:0, scores:[]});
+  const teamScore = Math.round(tot.scores.reduce((a,b)=>a+b,0)/tot.scores.length);
+  const conv = tot.calls > 0 ? Math.round(tot.deals / tot.calls * 100) : 0;
+
+  // Donut: each manager's contribution by score weighted equal share
+  const donutData = MANAGERS.map(m => ({
+    id: m.id, name: m.name.split(' ')[0],
+    val: avgScore(STATS[m.id][p].scores),
+    color: ['#F2DB82','#E2AB1A','#D37249','#641B9C','#E919D6'][MANAGERS.indexOf(m)]
+  }));
+
+  views.overview.innerHTML = `
+    <div class="page-h">
+      <div>
+        <div class="eyebrow accent">${periodLabel(p)} · ${new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase()}</div>
+        <h1>Отдел <span class="accent">продаж</span><br/>в одном экране</h1>
+      </div>
+      <div class="page-h-meta">
+        Команда · 5 менеджеров<br/>
+        Поток · ${tot.calls} звонков<br/>
+        Выручка · ${fmtMoney(tot.sum)}
+      </div>
+    </div>
+
+    <div class="rop-says">
+      <div class="rop-says-avatar">⚡</div>
+      <div class="rop-says-content">
+        <div class="rop-says-label">РОП говорит сегодня</div>
+        <div class="rop-says-text">${insights.headline}</div>
+      </div>
+    </div>
+
+    <div class="insights stagger">
+      ${insights.cards.map(c => `
+        <div class="insight ${c.tone}">
+          <div class="insight-tag">${c.tag}</div>
+          <div class="insight-title">${c.title}</div>
+          <div class="insight-body">${c.body}</div>
+          <div class="insight-cta">${c.cta} →</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="kpi-row stagger">
+      <div class="kpi">
+        <div class="kpi-label">Звонков</div>
+        <div class="kpi-value"><span data-count="${tot.calls}">0</span></div>
+        <div class="kpi-delta up">↑ +14% к прошлому ${p==='day'?'дню':p==='week'?'нед.':p==='month'?'мес.':'кварт.'}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Скор команды</div>
+        <div class="kpi-value"><span data-count="${teamScore}">0</span><span class="unit">/100</span></div>
+        <div class="kpi-delta ${teamScore>=75?'up':'down'}">${teamScore>=75?'↑':'↓'} ${teamScore>=75?'+3':'-2'} пункта</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Сделок</div>
+        <div class="kpi-value"><span data-count="${tot.deals}">0</span></div>
+        <div class="kpi-delta up">↑ ${fmtMoney(tot.sum)} выручка</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Конверсия</div>
+        <div class="kpi-value"><span data-count="${conv}">0</span><span class="unit">%</span></div>
+        <div class="kpi-delta ${conv>=15?'up':'flat'}">${conv>=15?'↑':'→'} цель — 18%</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-h">
+          <h3>Эффективность по менеджерам</h3>
+          <div class="meta">${periodLabel(p)}</div>
+        </div>
+        <div class="donut-wrap">
+          ${donutSvg(donutData, teamScore)}
+          <div class="donut-legend">
+            ${donutData
+              .map((d,i)=>({...d, mgr: MANAGERS[i]}))
+              .sort((a,b)=>b.val-a.val)
+              .map(d => `
+              <div class="donut-legend-item">
+                <div class="donut-legend-name">
+                  <div class="donut-dot" style="background:${d.color}"></div>
+                  ${d.mgr.name}
+                </div>
+                <div class="donut-legend-val">${d.val}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h3>Радар качества</h3>
+          <div class="meta">средняя по команде</div>
+        </div>
+        ${radarSvg(CRITERIA.map((c,i) => ({
+          label: c.full,
+          val: Math.round(MANAGERS.reduce((a,m)=>a+STATS[m.id][p].scores[i],0)/MANAGERS.length)
+        })))}
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:48px">
+      <div class="section-h">
+        <div>
+          <div class="eyebrow">МЕНЕДЖЕРЫ</div>
+          <h2>Открыть карточку</h2>
+        </div>
+        <div class="meta">клик — расшифровки звонков</div>
+      </div>
+      <div class="mgr-grid stagger">
+        ${MANAGERS.map(m => mgrCard(m, p)).join('')}
+      </div>
+    </div>
+  `;
+
+  // attach manager card clicks
+  views.overview.querySelectorAll('[data-mgr]').forEach(el => {
+    el.addEventListener('click', () => location.hash = '#/manager/' + el.dataset.mgr);
+  });
+}
+
+function mgrCard(m, p){
+  const s = STATS[m.id][p];
+  const score = avgScore(s.scores);
+  const cls = scoreClass(score);
+  const ts = TS[m.id];
+  return `
+    <div class="mgr-card" data-mgr="${m.id}">
+      <div class="mgr-card-h">
+        <div class="mgr-avatar ${m.tier==='top'?'top':''}">${m.initials}</div>
+        <div>
+          <div class="mgr-name">${m.name}</div>
+          <div class="mgr-role">${m.role}</div>
+        </div>
+      </div>
+      <div class="mgr-score-row">
+        <div class="mgr-score ${cls}">${score}<span style="font-size:18px;color:var(--fg-3);font-weight:500;letter-spacing:0">/100</span></div>
+        <div class="mgr-stats">
+          ${s.calls} звонк.<br/>
+          ${s.deals} сделок<br/>
+          ${fmtMoney(s.sum)}
+        </div>
+      </div>
+      ${sparklineSvg(ts, cls)}
+      <div class="mgr-foot">
+        <div>Конверсия <strong>${s.conv}%</strong></div>
+        <div>Ср. длит. <strong>${s.dur} мин</strong></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER: MANAGER DETAIL
+   ============================================================ */
+
+function renderManager(id){
+  const m = MANAGERS.find(x => x.id === id);
+  if(!m){ location.hash = '#/'; return; }
+  const p = currentPeriod;
+  const s = STATS[m.id][p];
+  const score = avgScore(s.scores);
+  const cls = scoreClass(score);
+  const ts = TS[m.id];
+  const calls = CALLS.filter(c => c.mgr === id);
+
+  views.manager.innerHTML = `
+    <a class="back-btn" href="#/">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+      ← К общему дашборду
+    </a>
+
+    <div class="mgr-detail-h">
+      <div class="mgr-detail-avatar">${m.initials}</div>
+      <div class="mgr-detail-meta">
+        <h1>${m.name}</h1>
+        <div class="role">${m.role}</div>
+      </div>
+      <div class="mgr-detail-score">
+        <div class="num ${cls}"><span data-count="${score}">0</span></div>
+        <div class="lbl">скор · ${periodLabel(p)}</div>
+      </div>
+    </div>
+
+    <div class="kpi-row stagger">
+      <div class="kpi">
+        <div class="kpi-label">Звонков</div>
+        <div class="kpi-value"><span data-count="${s.calls}">0</span></div>
+        <div class="kpi-delta up">↑ ${s.calls > 0 ? '+'+Math.round(s.calls*0.12) : 0} к плану</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Сделок</div>
+        <div class="kpi-value"><span data-count="${s.deals}">0</span></div>
+        <div class="kpi-delta ${s.deals>0?'up':'flat'}">${fmtMoney(s.sum)} выручка</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Конверсия</div>
+        <div class="kpi-value"><span data-count="${s.conv}">0</span><span class="unit">%</span></div>
+        <div class="kpi-delta ${s.conv>=15?'up':'down'}">цель — 18%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Ср. длит.</div>
+        <div class="kpi-value"><span data-count="${s.dur}">0</span><span class="unit">мин</span></div>
+        <div class="kpi-delta flat">оптимум 50-60</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-h">
+          <h3>Эффективность по дням</h3>
+          <div class="meta">последние 30 дней</div>
+        </div>
+        ${lineChartSvg(ts)}
+      </div>
+      <div class="card">
+        <div class="card-h">
+          <h3>Радар качества</h3>
+          <div class="meta">по 5 критериям</div>
+        </div>
+        ${radarSvg(CRITERIA.map((c,i) => ({label:c.full, val: s.scores[i]})))}
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:48px">
+      <div class="section-h">
+        <div>
+          <div class="eyebrow">ЗВОНКИ</div>
+          <h2>${calls.length} звонков · клик — расшифровка</h2>
+        </div>
+        <div class="meta">отсортировано по времени</div>
+      </div>
+      <div class="call-list">
+        ${calls.map(c => callRow(c)).join('')}
+      </div>
+    </div>
+  `;
+
+  views.manager.querySelectorAll('[data-call]').forEach(el => {
+    el.addEventListener('click', () => location.hash = '#/call/' + el.dataset.call);
+  });
+}
+
+function callRow(c){
+  const cls = scoreClass(c.score);
+  const resultLbl = {win:'Закрыта', lost:'Слита', next:'След. шаг'}[c.result];
+  const hasTranscript = !!TRANSCRIPTS[c.id];
+  return `
+    <div class="call-row" data-call="${c.id}">
+      <div class="call-time">${c.time}</div>
+      <div class="call-client">
+        ${c.client}
+        <span class="topic">${c.topic}</span>
+      </div>
+      <div class="call-dur">${c.dur}</div>
+      <div class="call-result ${c.result}">${resultLbl}</div>
+      <div class="call-score ${cls}">${c.score}</div>
+      <div class="call-arrow">→</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER: CALL DETAIL
+   ============================================================ */
+
+function renderCall(id){
+  const c = CALLS.find(x => x.id === id);
+  if(!c){ location.hash = '#/'; return; }
+  const m = MANAGERS.find(x => x.id === c.mgr);
+  const t = TRANSCRIPTS[c.id];
+  const resultLbl = {win:'Сделка закрыта', lost:'Лид потерян', next:'Следующий шаг'}[c.result];
+
+  views.call.innerHTML = `
+    <a class="back-btn" href="#/manager/${m.id}">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+      ← К ${m.name}
+    </a>
+
+    <div class="call-detail-h">
+      <div>
+        <div class="eyebrow">ЗВОНОК · ${c.time} · ${c.dur}</div>
+        <h1>${c.client}</h1>
+        <div class="meta">
+          ${c.topic}<br/>
+          Менеджер: <a href="#/manager/${m.id}" style="color:var(--brand-accent)">${m.name}</a>
+        </div>
+      </div>
+      <div></div>
+      <div class="call-tags">
+        <div class="tag-result ${c.result}">${resultLbl}</div>
+        <div class="tag-result" style="background:var(--bg-2); color:var(--fg-1)">Скор · ${c.score}/100</div>
+      </div>
+    </div>
+
+    <div class="scores-strip">
+      ${CRITERIA.map((cr,i) => {
+        const v = c.scores[i];
+        const cls = scoreClass(v);
+        return `
+          <div class="score-cell">
+            <div class="lbl">${cr.full}</div>
+            <div class="num ${cls}">${v}</div>
+            <div class="bar"><div class="bar-fill ${cls}" style="width:${v}%"></div></div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    ${t ? `
+      <div class="transcript-grid">
+        <div class="transcript">
+          <div class="eyebrow" style="margin-bottom:24px">РАСШИФРОВКА</div>
+          ${t.lines.map(l => `
+            <div class="transcript-line ${l.flag ? 'flag-'+l.flag : ''}">
+              <div class="transcript-who ${l.who==='mgr'?'mgr':''}">${l.who==='mgr'?m.name.split(' ')[0]:c.client.split(' ')[0]}</div>
+              <div>
+                <div class="transcript-text">${l.text}</div>
+                ${l.flag ? `<div class="transcript-flag ${l.flag}">${l.flagText}</div>`:''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="analysis">
+          <h4>Резюме</h4>
+          <p style="font-size:14px;color:var(--fg-2);line-height:1.55">${t.summary}</p>
+
+          <h4>Что сделано хорошо</h4>
+          <ul>
+            ${t.pros.map(p => `<li class="good">${p}</li>`).join('')}
+          </ul>
+
+          <h4>Что упущено</h4>
+          <ul>
+            ${t.cons.map(p => `<li class="bad">${p}</li>`).join('')}
+          </ul>
+
+          <div class="analysis-rec">
+            <div class="label">Рекомендация РОПа</div>
+            <p>${t.rec}</p>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div class="card">
+        <p style="color:var(--fg-3); font-size:14px">Расшифровка по этому звонку в обработке. Доступны звонки: c1 (Галина — эталон), c5 (Галина — нецелевой лид), c15 (Никита — слитое возражение), c20 (Дарья — провал по времени).</p>
+      </div>
+    `}
+  `;
+}
+
+/* ============================================================
+   SVG HELPERS
+   ============================================================ */
+
+function donutSvg(data, centerVal){
+  const r = 100, cx=120, cy=120, sw=24;
+  const total = data.reduce((a,d)=>a+d.val,0);
+  let acc = 0;
+  const segments = data.map(d => {
+    const fr = d.val/total;
+    const len = 2*Math.PI*r;
+    const dash = `${fr*len} ${len}`;
+    const offset = -acc * len;
+    acc += fr;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="${sw}" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>`;
+  }).join('');
+  return `
+    <div class="donut">
+      <svg viewBox="0 0 240 240" width="240" height="240">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg-2)" stroke-width="${sw}"/>
+        ${segments}
+      </svg>
+      <div class="donut-center">
+        <div class="num"><span data-count="${centerVal}">0</span></div>
+        <div class="lbl">Скор команды</div>
+      </div>
+    </div>
+  `;
+}
+
+function radarSvg(items){
+  const cx=190, cy=190, r=140;
+  const n = items.length;
+  // grid rings
+  const rings = [0.25, 0.5, 0.75, 1].map(rr => {
+    const pts = items.map((_,i) => {
+      const a = -Math.PI/2 + i*2*Math.PI/n;
+      return `${cx + r*rr*Math.cos(a)},${cy + r*rr*Math.sin(a)}`;
+    }).join(' ');
+    return `<polygon class="radar-grid" points="${pts}"/>`;
+  }).join('');
+  // axes
+  const axes = items.map((_,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    return `<line class="radar-grid-axis" x1="${cx}" y1="${cy}" x2="${cx + r*Math.cos(a)}" y2="${cy + r*Math.sin(a)}"/>`;
+  }).join('');
+  // shape
+  const pts = items.map((it,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    const rr = r * (it.val/100);
+    return `${cx + rr*Math.cos(a)},${cy + rr*Math.sin(a)}`;
+  }).join(' ');
+  // dots
+  const dots = items.map((it,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    const rr = r * (it.val/100);
+    return `<circle class="radar-dot" cx="${cx + rr*Math.cos(a)}" cy="${cy + rr*Math.sin(a)}" r="4"/>`;
+  }).join('');
+  // labels
+  const labels = items.map((it,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    const lr = r + 24;
+    const x = cx + lr*Math.cos(a);
+    const y = cy + lr*Math.sin(a);
+    const ta = Math.abs(Math.cos(a)) < 0.2 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
+    return `
+      <text class="radar-label" x="${x}" y="${y}" text-anchor="${ta}" alignment-baseline="middle">${it.label}</text>
+      <text class="radar-val" x="${x}" y="${y+14}" text-anchor="${ta}" alignment-baseline="middle">${it.val}</text>
+    `;
+  }).join('');
+  return `
+    <svg class="radar" viewBox="0 0 380 380">
+      ${rings}
+      ${axes}
+      <polygon class="radar-shape" points="${pts}"/>
+      ${dots}
+      ${labels}
+    </svg>
+  `;
+}
+
+function lineChartSvg(data){
+  const w=720, h=260, pad={t:20,r:24,b:36,l:32};
+  const W = w - pad.l - pad.r;
+  const H = h - pad.t - pad.b;
+  const min = 30, max = 100;
+  const xs = data.map((_,i) => pad.l + (i/(data.length-1))*W);
+  const ys = data.map(v => pad.t + H - ((v-min)/(max-min))*H);
+  const linePath = xs.map((x,i) => (i===0?'M':'L')+x+','+ys[i]).join(' ');
+  const areaPath = linePath + ` L ${xs[xs.length-1]} ${pad.t+H} L ${xs[0]} ${pad.t+H} Z`;
+  const gridLines = [40, 60, 80, 100].map(v => {
+    const y = pad.t + H - ((v-min)/(max-min))*H;
+    return `
+      <line class="chart-grid" x1="${pad.l}" y1="${y}" x2="${pad.l+W}" y2="${y}"/>
+      <text class="chart-axis" x="${pad.l-8}" y="${y+3}" text-anchor="end">${v}</text>
+    `;
+  }).join('');
+  const dots = xs.map((x,i) => (i%5===0 || i===xs.length-1) ? `<circle class="chart-dot" cx="${x}" cy="${ys[i]}" r="4"/>` : '').join('');
+  // x labels - days ago
+  const xLabels = [0, 7, 14, 21, 29].map(i => `<text class="chart-axis" x="${xs[i]}" y="${pad.t+H+18}" text-anchor="middle">−${29-i}д</text>`).join('');
+  return `
+    <svg class="line-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="area-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#F2DB82" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="#F2DB82" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${gridLines}
+      <path class="chart-area" d="${areaPath}"/>
+      <path class="chart-line" d="${linePath}"/>
+      ${dots}
+      ${xLabels}
+    </svg>
+  `;
+}
+
+function sparklineSvg(data, cls){
+  const w=240, h=40, pad=4;
+  const W = w - pad*2, H = h - pad*2;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = Math.max(max-min, 10);
+  const xs = data.map((_,i) => pad + (i/(data.length-1))*W);
+  const ys = data.map(v => pad + H - ((v-min)/range)*H);
+  const path = xs.map((x,i) => (i===0?'M':'L')+x+','+ys[i]).join(' ');
+  const colorMap = {good:'#7CDB8E', warn:'#F2DB82', bad:'#E55B5B'};
+  const color = colorMap[cls] || '#F2DB82';
+  return `
+    <svg class="mgr-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+/* ============================================================
+   PERIOD TABS
+   ============================================================ */
+
+document.getElementById('period-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-period]');
+  if(!btn) return;
+  document.querySelectorAll('#period-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPeriod = btn.dataset.period;
+  navigate();
+});
+
+/* INIT */
+navigate();
+</script>
+</body>
+</html>
