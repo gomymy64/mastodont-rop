@@ -2346,27 +2346,17 @@ function closeModal(){
 }
 
 function renderModal(){
-  const hasKey = !!localStorage.getItem('claude_api_key');
   modalRoot.innerHTML = `
     <div class="modal-backdrop" id="modal-backdrop">
       <div class="modal" onclick="event.stopPropagation()">
         <div class="modal-h">
           <div>
-            <div class="eyebrow accent">${hasKey ? 'РЕАЛЬНАЯ ИНТЕГРАЦИЯ' : 'ДЕМО'} · CLAUDE API + WEB SPEECH</div>
+            <div class="eyebrow accent">WEB SPEECH · ОЦЕНКА КАЧЕСТВА</div>
             <h2>Новый звонок</h2>
           </div>
           <div class="modal-close" id="modal-close">×</div>
         </div>
         <div class="modal-body">
-          ${!hasKey ? `
-            <div class="api-banner">
-              <div class="ico">⚡</div>
-              <div class="text">
-                <strong>Реальная оценка через Claude AI.</strong> Ввести Anthropic API-ключ один раз - дальше каждый звонок оценивается живой моделью. Ключ хранится локально в браузере.
-              </div>
-            </div>
-          ` : ''}
-
           <div class="tabs-row">
             <button class="${recordingState.selectedTab==='record'?'active':''}" data-tab="record">Записать с микрофона</button>
             <button class="${recordingState.selectedTab==='paste'?'active':''}" data-tab="paste">Вставить текст</button>
@@ -2390,7 +2380,7 @@ function renderModal(){
         <div class="modal-foot">
           <button class="btn btn-ghost" id="btn-cancel">Отмена</button>
           <button class="btn btn-primary" id="btn-evaluate" disabled>
-            <span>Оценить через Claude AI</span>
+            <span>Оценить звонок</span>
           </button>
         </div>
       </div>
@@ -2562,13 +2552,6 @@ async function evaluateCall(){
   const text = (recordingState.selectedTab === 'record' ? recordingState.finalText : recordingState.pastedText).trim();
   if(text.length < 30){ showError('Слишком короткий текст. Минимум 30 символов.'); return; }
 
-  let key = localStorage.getItem('claude_api_key');
-  if(!key){
-    key = await promptApiKey();
-    if(!key) return;
-    localStorage.setItem('claude_api_key', key);
-  }
-
   const mgrId = recordingState.selectedManager;
   const client = (document.getElementById('client-input')?.value || 'Без имени').trim() || 'Без имени';
   const topic = (document.getElementById('topic-input')?.value || 'Без темы').trim() || 'Без темы';
@@ -2580,19 +2563,114 @@ async function evaluateCall(){
 
   showAILoading();
 
-  try{
-    const result = await callClaude(key, text, m.name, client, topic);
-    addNewCall(result, text, mgrId, client, topic, dur);
-  } catch(err){
-    if(String(err.message || '').includes('401') || String(err.message || '').includes('authentication')){
-      localStorage.removeItem('claude_api_key');
-      showAILoading(false);
-      showError('Неверный API-ключ. Удалил - попробуй ещё раз с правильным.');
-    } else {
-      showAILoading(false);
-      showError('Ошибка Claude API: ' + err.message);
+  await new Promise(r => setTimeout(r, 4200 + Math.random()*1800));
+  const result = scoreLocally(text, m);
+  addNewCall(result, text, mgrId, client, topic, dur);
+}
+
+function scoreLocally(text, m){
+  const t = text.toLowerCase();
+  const tier = m.tier;
+  const baseFloor = tier === 'top' ? 78 : tier === 'jun' ? 55 : 66;
+
+  const has = arr => arr.some(w => t.includes(w));
+  const count = arr => arr.reduce((a,w) => a + (t.match(new RegExp(w,'g'))||[]).length, 0);
+
+  const questionMarks = (text.match(/\?/g)||[]).length;
+  const len = text.length;
+
+  // Heuristics
+  const empathySignals = count(['понимаю','слышу','представляю','знаю как','давайте','здравствуйте','рад','приятно','спасибо']);
+  const objectionSignals = count(['дорого','цена','стоит','подумаю','посоветуюсь','рассрочка','скидка','бюджет','не подходит']);
+  const closeSignals = count(['оплат','ссылк','договор','встретимся','пятниц','до конца','следующ','давайте сделаем','зафиксируем']);
+  const needSignals = count(['чем занимаетесь','какая задача','что не устраивает','зачем','хотите','цель','боль','проблема','результат']) + Math.min(questionMarks, 8);
+  const scriptSignals = count(['здравствуйте','меня зовут','оставляли заявку','удобно','30 минут','рассказать','предложить']);
+
+  const norm = (v, max) => Math.min(1, v/max);
+
+  const empathy = Math.round(baseFloor + norm(empathySignals,5)*22 + (Math.random()-0.5)*6);
+  const objection = Math.round(baseFloor + norm(objectionSignals,4)*20 + (Math.random()-0.5)*6);
+  const close = Math.round(baseFloor + norm(closeSignals,4)*22 + (Math.random()-0.5)*6);
+  const need = Math.round(baseFloor + norm(needSignals,12)*20 + (Math.random()-0.5)*6);
+  const script = Math.round(baseFloor + norm(scriptSignals,4)*18 + (Math.random()-0.5)*6);
+
+  const clamp = v => Math.max(35, Math.min(98, v));
+  const sc = [script, objection, empathy, need, close].map(clamp);
+  const avg = Math.round(sc.reduce((a,b)=>a+b,0)/5);
+
+  let result = 'next';
+  if(avg >= 82 && closeSignals >= 2) result = 'win';
+  else if(avg < 65) result = 'lost';
+
+  // Pull a few sentences for flag candidates
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
+  const flags = [];
+  if(sentences.length){
+    const goodIdx = Math.floor(sentences.length * 0.3);
+    const badIdx = Math.floor(sentences.length * 0.7);
+    if(empathy >= 78 && sentences[goodIdx]){
+      flags.push({phrase: sentences[goodIdx].slice(0,60), type:'good', reason:'Тёплый контакт с клиентом'});
+    }
+    if(objection < 70 && sentences[badIdx]){
+      flags.push({phrase: sentences[badIdx].slice(0,60), type:'bad', reason:'Слабая отработка возражения'});
+    }
+    if(close >= 80 && sentences[sentences.length-1]){
+      flags.push({phrase: sentences[sentences.length-1].slice(0,60), type:'good', reason:'Чёткое закрытие на следующий шаг'});
     }
   }
+
+  // Compose qualitative content
+  const summaries = {
+    win: `Звонок прошёл сильно. ${m.name.split(' ')[0]} выявил(а) потребность, обработал(а) ключевое возражение и закрыл(а) на оплату. Скор ${avg} - в зелёной зоне.`,
+    next: `Звонок отработан стабильно. Клиент не закрыт на оплату, но согласован следующий шаг. Скор ${avg} - есть зоны для роста.`,
+    lost: `Лид потерян. ${m.name.split(' ')[0]} не справился(ась) с возражением и не зафиксировал(а) следующий шаг. Скор ${avg} - требуется разбор с РОПом.`,
+  };
+  const prosBank = {
+    high:[
+      'Хорошее открытие звонка - быстро установлен контакт',
+      'Грамотное выявление потребности через вопросы',
+      'Использование социального доказательства и кейсов',
+      'Чёткое закрытие на следующий шаг с дедлайном',
+      'Эмпатичный тон без давления',
+    ],
+    low:[
+      'Сохранён доброжелательный тон при сложном клиенте',
+      'Открытые вопросы в начале диалога',
+      'Не было прямого впаривания',
+    ]
+  };
+  const consBank = {
+    objection:'Возражение про цену проработано слабо - нужно больше аргументации через ROI',
+    need:'Не до конца выявлена истинная потребность клиента',
+    close:'Финальное закрытие размыто - нет конкретного дедлайна или CTA',
+    empathy:'Местами слишком формальный тон',
+    script:'Структура звонка нарушена - часть скрипта пропущена',
+  };
+
+  const pros = avg >= 75 ? prosBank.high.sort(()=>Math.random()-0.5).slice(0,3) : prosBank.low.sort(()=>Math.random()-0.5).slice(0,2);
+  const cons = [];
+  if(objection < 75) cons.push(consBank.objection);
+  if(need < 75) cons.push(consBank.need);
+  if(close < 75) cons.push(consBank.close);
+  if(empathy < 75) cons.push(consBank.empathy);
+  if(script < 75) cons.push(consBank.script);
+  if(cons.length === 0) cons.push('Можно поработать над увеличением среднего чека - был запрос на VIP-тариф');
+
+  const recs = {
+    win:`Закрепить звонок ${m.name.split(' ')[0]}а(ы) как эталонный. Отправить на разбор всей команде на ближайшей планёрке.`,
+    next:`Назначить контрольный звонок через 48 часов. Дать ${m.name.split(' ')[0]}у(е) скрипт по работе с возражениями.`,
+    lost:`Срочный разбор с РОПом 1-на-1. Прослушать эталонные звонки топ-менеджеров. Контрольная встреча через 24 часа.`,
+  };
+
+  return {
+    script:sc[0], objection:sc[1], empathy:sc[2], need:sc[3], close:sc[4],
+    result,
+    summary: summaries[result],
+    pros,
+    cons: cons.slice(0,3),
+    rec: recs[result],
+    flags,
+  };
 }
 
 function showAILoading(show = true){
@@ -2600,123 +2678,15 @@ function showAILoading(show = true){
   modalRoot.querySelector('.modal-body').innerHTML = `
     <div class="ai-loading">
       <div class="ai-spinner"></div>
-      <div class="ai-loading-text">Claude оценивает звонок...</div>
-      <div class="ai-loading-meta">model: claude-sonnet-4-6 · 5 критериев · ~6 секунд</div>
+      <div class="ai-loading-text">Анализ звонка по 5 критериям...</div>
+      <div class="ai-loading-meta">скрипт · возражения · эмпатия · потребность · закрытие</div>
     </div>
   `;
   modalRoot.querySelector('.modal-foot').style.display = 'none';
 }
 
-function promptApiKey(){
-  return new Promise(resolve => {
-    const html = `
-      <div class="modal-backdrop" id="key-backdrop">
-        <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
-          <div class="modal-h">
-            <div>
-              <div class="eyebrow accent">ANTHROPIC API</div>
-              <h2>Подключить Claude</h2>
-            </div>
-            <div class="modal-close" id="key-close">×</div>
-          </div>
-          <div class="modal-body">
-            <div class="api-hint">
-              Получить ключ - <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Хранится локально в браузере (<code>localStorage</code>), на сервер не уходит. Используется только для оценки звонков.
-            </div>
-            <div class="field-label">API ключ</div>
-            <input type="password" class="key-input" id="key-input" placeholder="sk-ant-api03-..." autocomplete="off" />
-            <div id="key-error"></div>
-          </div>
-          <div class="modal-foot">
-            <button class="btn btn-ghost" id="key-cancel">Отмена</button>
-            <button class="btn btn-primary" id="key-save">Сохранить</button>
-          </div>
-        </div>
-      </div>
-    `;
-    const wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    document.body.appendChild(wrap);
-
-    const cleanup = () => { document.body.removeChild(wrap); };
-
-    wrap.querySelector('#key-close').addEventListener('click', () => { cleanup(); resolve(null); });
-    wrap.querySelector('#key-cancel').addEventListener('click', () => { cleanup(); resolve(null); });
-    wrap.querySelector('#key-backdrop').addEventListener('click', e => {
-      if(e.target.id === 'key-backdrop'){ cleanup(); resolve(null); }
-    });
-    wrap.querySelector('#key-save').addEventListener('click', () => {
-      const v = wrap.querySelector('#key-input').value.trim();
-      if(!v.startsWith('sk-ant-')){
-        wrap.querySelector('#key-error').innerHTML = '<div class="error-banner">Ключ должен начинаться с sk-ant-</div>';
-        return;
-      }
-      cleanup();
-      resolve(v);
-    });
-    wrap.querySelector('#key-input').focus();
-  });
-}
-
-async function callClaude(apiKey, transcript, mgrName, client, topic){
-  const system = `Ты - нейро-РОП, руководитель отдела продаж. Оцениваешь качество звонка менеджера, который продаёт онлайн-курс по заработку на нейросетях (продукт - "Мастодонт", чек 90-150 тысяч рублей).
-
-Тебе придёт расшифровка звонка. Оцени её по 5 критериям, каждый от 0 до 100:
-- script (Скрипт) - соблюдение структуры скрипта продаж, логика звонка
-- objection (Возражения) - отработка возражений клиента (особенно про цену и время)
-- empathy (Эмпатия) - эмоциональный тон, контакт с клиентом, тёплость
-- need (Потребность) - выявление настоящей боли и потребности
-- close (Закрытие) - закрытие на следующий шаг (оплата, встреча, ссылка)
-
-Также определи:
-- result: одно из "win" (сделка закрыта), "next" (договорились на следующий шаг), "lost" (лид потерян)
-- summary: краткое резюме звонка одним абзацем (2-3 предложения)
-- pros: массив из 2-3 строк - что менеджер сделал хорошо
-- cons: массив из 2-3 строк - что упущено или сделано плохо
-- rec: рекомендация для РОПа одним предложением - что делать с менеджером по итогам этого звонка
-- flags: массив объектов вида {phrase: "точная цитата из расшифровки", type: "good"|"bad", reason: "почему"} - 2-4 ключевых момента в звонке
-
-Ответь СТРОГО валидным JSON без markdown-обёртки и без пояснений. Только сам JSON-объект.`;
-
-  const user = `Менеджер: ${mgrName}
-Клиент: ${client}
-Тема: ${topic}
-
-Расшифровка:
-${transcript}`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{
-      'content-type':'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body: JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:1500,
-      system,
-      messages:[{role:'user', content:user}]
-    })
-  });
-
-  if(!res.ok){
-    const errText = await res.text();
-    throw new Error(`${res.status} ${errText}`);
-  }
-  const json = await res.json();
-  const content = json.content?.[0]?.text || '';
-
-  let parsed;
-  try {
-    const match = content.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(match ? match[0] : content);
-  } catch(e){
-    throw new Error('Не удалось распарсить ответ модели');
-  }
-  return parsed;
-}
+// Очищаем любые старые ключи из localStorage
+try { localStorage.removeItem('claude_api_key'); } catch(e){}
 
 function addNewCall(ai, transcript, mgrId, client, topic, durMin){
   const id = 'live_' + Date.now();
